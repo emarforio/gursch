@@ -12,7 +12,7 @@ Read `RULES.md` before working on anything. It is the source of truth for game r
 - No backend server of our own. Firebase provides auth, database and static hosting.
 - Score entry uses on-screen buttons only. The keyboard must never open during a round.
 - Score entry takes as few taps as possible: one tap per player plus one to save.
-- UI language is English, with the house terms doffel/dofflar, troffel/trofflar, foffel/fofflar.
+- The UI is available in English and Swedish (Swedish is planned, see milestone 9). It follows the device language by default and can be changed. The house terms doffel/dofflar, troffel/trofflar, foffel/fofflar are used in both.
 
 ## Stack
 
@@ -229,7 +229,7 @@ Only rounds a player took part in count towards their averages.
 
 Each milestone should end with a working, deployable app.
 
-Status: 1 to 7 are done and confirmed by Erik against the real Firebase project. From polish (8), PWA install and offline are done (`vite-plugin-pwa`, app icon in `public/icon.svg`, with PNG renders of it; `public/favicon.svg` is the same cards without the background). Still open: JSON export and import, accessibility pass.
+Status: 1 to 7 are done and confirmed by Erik against the real Firebase project. From polish (8), PWA install and offline are done (`vite-plugin-pwa`, app icon in `public/icon.svg`, with PNG renders of it; `public/favicon.svg` is the same cards without the background). Still open: JSON export and import, accessibility pass, and the Swedish translation (9).
 
 1. **Scaffold** — Vite, React, TypeScript, Tailwind, router, lint, Vitest, empty pages, Firebase Hosting config.
 2. **Domain core** — everything in `domain/` with unit tests, including the tie-break cases and formula parser errors.
@@ -239,6 +239,21 @@ Status: 1 to 7 are done and confirmed by Erik against the real Firebase project.
 6. **Accounts** — Google sign-in, `firestoreRepo`, security rules, first-login import.
 7. **Sharing** — share toggle, share link, live read-only view.
 8. **Polish** — PWA install and offline, JSON export and import, empty states, accessibility pass.
+9. **Swedish translation** — the whole app in Swedish as well as English. See below.
+
+### Milestone 9: Swedish translation
+
+Requested by Erik on 2026-11-11: some people will prefer Swedish over English only.
+
+- **Default:** follow the device language. Use Swedish when the first entry in `navigator.languages` starts with `sv`, otherwise English.
+- **Changeable:** a language choice on the Account page (Automatic, English, Svenska). The choice is saved on the device in `localStorage` under `gursch.v1.language` and is not synced, so each device can differ. It must work signed out.
+- **Mechanism:** no i18n library. One typed dictionary per language in `src/i18n/` (`en.ts`, `sv.ts`), with `en.ts` defining the key type so a missing Swedish string is a type error. A small `useT()` hook returns the lookup function. Strings with numbers take parameters and handle plurals in code, as the English ones do today.
+- **Scope:** every user-visible string, including button labels, empty states, error messages, `aria-label`s, chart labels and tooltips, the deal hints in `src/domain/deal.ts` and the formula error messages in `src/domain/formula.ts`. The domain layer should return message keys or codes, not English sentences, so it stays free of UI concerns.
+- **Rules page:** add `RULES.sv.md` as a full Swedish version of `RULES.md` and render the one matching the language. Keep the two in step when rules change.
+- **Not translated:** the formula variable names (`max_score`, `min_score`, `total`, `players`), stored data, and the house terms.
+- **Formatting:** dates and numbers use the chosen language's locale instead of the browser default (`fmtDate` in `src/ui/format.ts`). Session names are stored as text when a session is created and are not re-translated.
+- **Document:** set `<html lang>` to the active language. The web app manifest stays in English.
+- **Testing:** a unit test that both dictionaries have the same keys, and a browser walkthrough of the main flow in Swedish at phone width to catch labels that no longer fit, especially the score entry screen and the stats tiles.
 
 ## Firebase setup
 
@@ -268,3 +283,4 @@ All of these are confirmed by Erik. Do not reopen them without asking.
 4. A doffel, troffel or foffel finish is entered as one sum per player, not card by card.
 5. Dofflar, trofflar and fofflar played during a round are not recorded, only the kind of finish.
 6. Sessions have no score target and end manually.
+7. The app is offered in English and Swedish, defaulting to the device language and changeable by the user. This replaces the earlier English-only decision.
