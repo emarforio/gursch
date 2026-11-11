@@ -52,6 +52,19 @@ export async function signOut(): Promise<void> {
   await fbSignOut(auth)
 }
 
+/**
+ * Follows one session live, for the read-only shared view. Works without
+ * signing in when the session is shared. Calls back with null when the session
+ * does not exist or is not shared.
+ */
+export function watchSession(id: string, cb: (session: Session | null) => void, onError: () => void): () => void {
+  return onSnapshot(
+    doc(db, 'sessions', id),
+    (snap) => cb(snap.exists() ? (snap.data() as Session) : null),
+    (e) => (e.code === 'permission-denied' ? cb(null) : onError()),
+  )
+}
+
 export type CloudRepository = Repository & { close(): void }
 
 /**

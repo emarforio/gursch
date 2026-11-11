@@ -6,6 +6,7 @@ import { ConfigEditor, isConfigValid } from '../components/ConfigEditor'
 import { ConfirmButton } from '../components/Controls'
 import { ScoreTable } from '../components/ScoreTable'
 import { SettleUp } from '../components/SettleUp'
+import { SharePanel } from '../components/SharePanel'
 import { fmtDate, peopleOf } from '../format'
 
 export function SessionPage() {
@@ -87,6 +88,8 @@ export function SessionPage() {
 
       <h2 className="mt-6 mb-2 font-semibold">Scores</h2>
       <ScoreTable session={session} person={person} onPickRound={(rid) => navigate(`/session/${session.id}/round/${rid}`)} />
+
+      <SharePanel session={session} />
 
       {!ended && (
         <details className="mt-6 rounded-xl bg-surface">

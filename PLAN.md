@@ -229,7 +229,7 @@ Only rounds a player took part in count towards their averages.
 
 Each milestone should end with a working, deployable app.
 
-Status: 1 to 5 are done, including changing players between rounds and editing or deleting a saved round. Milestone 6 (accounts) is written but has never run against a real Firebase project: sign-in, Firestore sync and the security rules are untested. Sharing (7) and polish (8) are not started.
+Status: 1 to 7 are done. Sign-in, sync and sharing were confirmed working by Erik against the real Firebase project. Polish (8) is not started: PWA install and offline, JSON export and import, accessibility pass.
 
 1. **Scaffold** — Vite, React, TypeScript, Tailwind, router, lint, Vitest, empty pages, Firebase Hosting config.
 2. **Domain core** — everything in `domain/` with unit tests, including the tie-break cases and formula parser errors.

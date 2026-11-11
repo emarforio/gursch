@@ -10,6 +10,8 @@ import { RoundEditPage } from './ui/pages/RoundEditPage'
 import { RulesPage } from './ui/pages/RulesPage'
 import { SeatingPage } from './ui/pages/SeatingPage'
 import { SessionPage } from './ui/pages/SessionPage'
+import { SharedPage } from './ui/pages/SharedPage'
+
 import { StatsPage } from './ui/pages/StatsPage'
 
 
@@ -22,6 +24,7 @@ export function App() {
         <Route path="session/:id" element={<SessionPage />} />
         <Route path="session/:id/seating" element={<SeatingPage />} />
         <Route path="session/:id/round/:roundId" element={<RoundEditPage />} />
+        <Route path="s/:id" element={<SharedPage />} />
         <Route path="history" element={<HistoryPage />} />
         <Route path="stats" element={<StatsPage />} />
         <Route path="players" element={<PlayersPage />} />
