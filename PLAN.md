@@ -247,7 +247,7 @@ The app is local-only until a Firebase project is configured. All SDK code is in
 1. Create a Firebase project and add a web app.
 2. Authentication: enable the Google provider.
 3. Firestore: create the database in production mode.
-4. Copy `.env.example` to `.env.local` and fill in the web app's `firebaseConfig` values. Restart the dev server.
+4. Copy `.env.example` to `.env` and fill in the web app's `firebaseConfig` values. Restart the dev server.
 5. Install the CLI (`npm i -g firebase-tools`), run `firebase login` and `firebase use --add`.
 6. Deploy the rules with `firebase deploy --only firestore:rules`.
 7. Deploy the site with `npm run build` and `firebase deploy --only hosting`.

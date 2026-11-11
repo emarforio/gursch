@@ -15,8 +15,10 @@ jobs:
         with:
           node-version: 24
           cache: npm
-      - name: Check that the Firebase web config is committed
-        run: test -f .env || { echo "::error::.env is missing, so the build would have no sign-in or sync. Copy .env.local to .env and commit it."; exit 1; }
+      # .env holds the public Firebase web config and is committed on purpose.
+      # Without it the build would silently have no sign-in or sync.
+      - name: Check that .env is present
+        run: test -f .env || { echo "::error::.env is missing from the repository. It holds the public Firebase web config and must be committed."; exit 1; }
       - run: npm ci
       - run: npm run typecheck
       - run: npm test
