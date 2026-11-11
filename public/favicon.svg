@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="58 78 396 396">
+  <defs>
+    <!-- One playing card, 190 x 266, drawn with its bottom centre at the origin so it can be fanned. -->
+    <g id="two">
+      <path d="M0,34 C0,10 44,10 44,36 C44,56 14,68 0,96 H46" fill="none" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+    <path id="spade" d="M24,0 C24,14 48,22 48,38 C48,50 34,54 27,45 C28,52 31,56 36,60 H12 C17,56 20,52 21,45 C14,54 0,50 0,38 C0,22 24,14 24,0 Z"/>
+    <path id="heart" d="M24,58 C10,44 0,34 0,20 C0,8 9,0 18,0 C22,0 24,3 24,8 C24,3 26,0 30,0 C39,0 48,8 48,20 C48,34 38,44 24,58 Z"/>
+  </defs>
+
+  <!-- Left card: 2 of spades -->
+  <g transform="translate(244 432) rotate(-15) scale(1.12)">
+    <rect x="-95" y="-262" width="190" height="266" rx="22" fill="#000" opacity="0.18"/>
+    <rect x="-95" y="-270" width="190" height="266" rx="22" fill="#fff" stroke="#1d1e20" stroke-opacity="0.45" stroke-width="5"/>
+    <use href="#two" x="-71" y="-258" stroke="#1d1e20"/>
+    <use href="#spade" x="-72" y="-138" fill="#1d1e20"/>
+  </g>
+
+  <!-- Right card: 2 of hearts -->
+  <g transform="translate(268 432) rotate(13) scale(1.12)">
+    <rect x="-99" y="-262" width="190" height="266" rx="22" fill="#000" opacity="0.22"/>
+    <rect x="-95" y="-270" width="190" height="266" rx="22" fill="#fff" stroke="#1d1e20" stroke-opacity="0.45" stroke-width="5"/>
+    <use href="#two" x="-71" y="-258" stroke="#c0392b"/>
+    <use href="#heart" x="-72" y="-138" fill="#c0392b"/>
+  </g>
+</svg>

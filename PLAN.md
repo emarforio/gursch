@@ -229,7 +229,7 @@ Only rounds a player took part in count towards their averages.
 
 Each milestone should end with a working, deployable app.
 
-Status: 1 to 7 are done. Sign-in, sync and sharing were confirmed working by Erik against the real Firebase project. Polish (8) is not started: PWA install and offline, JSON export and import, accessibility pass.
+Status: 1 to 7 are done and confirmed by Erik against the real Firebase project. From polish (8), PWA install and offline are done (`vite-plugin-pwa`, app icon in `public/icon.svg`, with PNG renders of it; `public/favicon.svg` is the same cards without the background). Still open: JSON export and import, accessibility pass.
 
 1. **Scaffold** — Vite, React, TypeScript, Tailwind, router, lint, Vitest, empty pages, Firebase Hosting config.
 2. **Domain core** — everything in `domain/` with unit tests, including the tie-break cases and formula parser errors.
