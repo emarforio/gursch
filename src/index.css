@@ -1,0 +1,137 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #f6f5f1;
+  --surface: #ffffff;
+  --sunken: #ecebe6;
+  --line: #dddbd3;
+  --text: #1d1e20;
+  --muted: #6b6c70;
+  --accent: #1f6f54;
+  --accent-text: #ffffff;
+  --good: #1f6f54;
+  --bad: #b3402e;
+  --series-1: #2a78d6;
+  --series-2: #eb6834;
+  --series-3: #1baf7a;
+  --series-4: #eda100;
+  --series-5: #e87ba4;
+  --series-6: #008300;
+  --series-7: #6250d6;
+  --series-8: #e34948;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #17181a;
+    --surface: #212225;
+    --sunken: #2b2d31;
+    --line: #36383d;
+    --text: #ecebe7;
+    --muted: #9c9da2;
+    --accent: #58b593;
+    --accent-text: #10201a;
+    --good: #58b593;
+    --bad: #e2806f;
+    --series-1: #3987e5;
+    --series-2: #d95926;
+    --series-3: #199e70;
+    --series-4: #c98500;
+    --series-5: #d55181;
+    --series-6: #008300;
+    --series-7: #9085e9;
+    --series-8: #e66767;
+    color-scheme: dark;
+  }
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-sunken: var(--sunken);
+  --color-line: var(--line);
+  --color-text: var(--text);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-accent-text: var(--accent-text);
+  --color-good: var(--good);
+  --color-bad: var(--bad);
+  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: var(--font-sans);
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  -webkit-tap-highlight-color: transparent;
+}
+
+button {
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Rendered rules text */
+.rules h1 {
+  font-size: 1.6rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+}
+.rules h2 {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin: 2rem 0 0.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--line);
+}
+.rules h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 1.25rem 0 0.4rem;
+}
+.rules p {
+  margin: 0.6rem 0;
+  line-height: 1.6;
+}
+.rules ul,
+.rules ol {
+  margin: 0.6rem 0;
+  padding-left: 1.4rem;
+  line-height: 1.6;
+}
+.rules ul {
+  list-style: disc;
+}
+.rules ol {
+  list-style: decimal;
+}
+.rules li {
+  margin: 0.25rem 0;
+}
+.rules li > ul,
+.rules li > ol {
+  margin: 0.25rem 0;
+}
+.rules code {
+  font-family: inherit;
+  font-weight: 600;
+}
+.rules pre {
+  background: var(--sunken);
+  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
+  margin: 0.75rem 0;
+  overflow-x: auto;
+}
