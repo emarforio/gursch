@@ -212,6 +212,13 @@ export const sv: Dictionary = {
     cleared: 'Allt som var sparat på den här enheten har tagits bort.',
   },
 
+  theme: {
+    title: 'Utseende',
+    light: 'Ljust',
+    dark: 'Mörkt',
+    note: 'Automatiskt följer enhetens ljusa eller mörka läge. Valet sparas bara på den här enheten.',
+  },
+
   screen: {
     title: 'Skärm',
     keepAwake: 'Håll skärmen tänd under spelet',

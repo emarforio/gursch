@@ -8,6 +8,8 @@ import type { LanguageChoice } from '../../i18n'
 import { Avatar } from '../components/Avatar'
 import { Button } from '../components/Button'
 import { Segmented } from '../components/Controls'
+import { setThemeChoice, useTheme } from '../theme'
+import type { ThemeChoice } from '../theme'
 import { setKeepAwake, useKeepAwake, wakeLockSupported } from '../wakeLock'
 
 export function useImport() {
@@ -121,6 +123,7 @@ export function SettingsPage() {
       )}
 
       <LanguagePicker />
+      <ThemePicker />
       {wakeLockSupported && <ScreenSetting />}
       <Backup />
       {firebaseConfigured && <DeleteAccount />}
@@ -147,6 +150,27 @@ function LanguagePicker() {
         ]}
       />
       <p className="mt-2 text-sm text-muted">{t.language.note}</p>
+    </>
+  )
+}
+
+function ThemePicker() {
+  const t = useT()
+  const choice = useTheme((s) => s.choice)
+  return (
+    <>
+      <h2 className="mt-8 mb-2 font-semibold">{t.theme.title}</h2>
+      <Segmented<ThemeChoice>
+        label={t.theme.title}
+        value={choice}
+        onChange={setThemeChoice}
+        options={[
+          { value: 'auto', label: t.language.automatic },
+          { value: 'light', label: t.theme.light },
+          { value: 'dark', label: t.theme.dark },
+        ]}
+      />
+      <p className="mt-2 text-sm text-muted">{t.theme.note}</p>
     </>
   )
 }

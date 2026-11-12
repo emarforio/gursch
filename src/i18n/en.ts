@@ -218,6 +218,13 @@ export const en = {
     cleared: 'Everything saved on this device has been deleted.',
   },
 
+  theme: {
+    title: 'Appearance',
+    light: 'Light',
+    dark: 'Dark',
+    note: 'Automatic follows the light or dark setting of this device. The choice is saved on this device only.',
+  },
+
   screen: {
     title: 'Screen',
     keepAwake: 'Keep the screen on during a game',

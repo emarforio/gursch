@@ -22,8 +22,10 @@
   color-scheme: light;
 }
 
+/* Dark theme. It applies when the device asks for it and "light" is not chosen in Settings, or when "dark" is chosen.
+   The two blocks must hold the same values. */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme='light']) {
     --bg: #17181a;
     --surface: #212225;
     --sunken: #2b2d31;
@@ -44,6 +46,28 @@
     --series-8: #e66767;
     color-scheme: dark;
   }
+}
+
+:root[data-theme='dark'] {
+  --bg: #17181a;
+  --surface: #212225;
+  --sunken: #2b2d31;
+  --line: #36383d;
+  --text: #ecebe7;
+  --muted: #9c9da2;
+  --accent: #58b593;
+  --accent-text: #10201a;
+  --good: #58b593;
+  --bad: #e2806f;
+  --series-1: #3987e5;
+  --series-2: #d95926;
+  --series-3: #199e70;
+  --series-4: #c98500;
+  --series-5: #d55181;
+  --series-6: #008300;
+  --series-7: #9085e9;
+  --series-8: #e66767;
+  color-scheme: dark;
 }
 
 @theme inline {

@@ -9,6 +9,13 @@
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <title>Gursch</title>
+    <!-- Apply a chosen light or dark theme before the first paint. src/ui/theme.ts owns the setting. -->
+    <script>
+      try {
+        var theme = localStorage.getItem('gursch.v1.theme')
+        if (theme === 'light' || theme === 'dark') document.documentElement.dataset.theme = theme
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <div id="root"></div>
