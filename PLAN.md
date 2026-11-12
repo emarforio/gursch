@@ -46,6 +46,7 @@ src/
     localRepo.ts   localStorage implementation
     firestoreRepo.ts
     migrate.ts     copy local data into the account on first login
+    backup.ts      export to and import from a JSON file
   i18n/          en.ts and sv.ts dictionaries, language choice, useT()
   ui/            pages and components
 ```
@@ -181,7 +182,7 @@ One versioned key per collection: `gursch.v1.players`, `gursch.v1.sessions`, `gu
 7. **Players** — add, rename, set picture. Removing a player who has played turns them into a guest; one who never played is deleted. Guests can be added on the fly when starting a session and promoted to regular players later.
 8. **Rules** — renders `RULES.md`.
 9. **Shared view** — `/s/{sessionId}`, read-only live view, no login needed.
-10. **Settings** — sign in or out, language, default config, export and import data as JSON.
+10. **Account** — sign in or out, language, export and import data as JSON. The default config is not edited here: a new session starts from the settings of the last one.
 
 ### Round entry
 
@@ -240,6 +241,11 @@ Status: 1 to 7 are done and confirmed by Erik against the real Firebase project.
 7. **Sharing** — share toggle, share link, live read-only view.
 8. **Polish** — PWA install and offline, JSON export and import, empty states, accessibility pass.
 9. **Swedish translation** — the whole app in Swedish as well as English. See below.
+
+### Milestone 8: backup file
+
+- **Backup file:** `{ app: "gursch", version: 1, exportedAt, players, sessions, settings }`. Sessions are written without `ownerUid` and with `shared: false`, since sharing belongs to an account. Export takes the active data: the account when signed in, the device otherwise.
+- **Import:** every record is validated and one bad record rejects the whole file. Records are merged by id and existing ones are never overwritten, the same as the first-login copy (`importLocal`). A game in progress in the file is resumed if none is running.
 
 ### Milestone 9: Swedish translation
 

@@ -196,6 +196,20 @@ export const sv: Dictionary = {
     note: 'Automatiskt följer enhetens språk. Valet sparas bara på den här enheten.',
   },
 
+  backup: {
+    title: 'Säkerhetskopia',
+    noteDevice: 'Spara spelarna och sessionerna på den här enheten i en fil, eller lägg till dem från en fil du sparat tidigare.',
+    noteAccount: 'Spara spelarna och sessionerna i ditt konto i en fil, eller lägg till dem från en fil du sparat tidigare.',
+    export: 'Exportera till en fil',
+    import: 'Importera från en fil',
+    importNote: 'Importen lägger bara till det som saknas. Spelare och sessioner som du redan har lämnas som de är.',
+    imported: (p, s) => `Lade till ${playersAndSessions(p, s)} från filen.`,
+    nothingNew: 'Allt i den filen finns redan här.',
+    notABackup: 'Den filen är ingen säkerhetskopia från Gursch.',
+    damaged: 'Säkerhetskopian gick inte att läsa. Inget ändrades.',
+    tooNew: 'Säkerhetskopian kommer från en nyare version av appen. Uppdatera appen och försök igen.',
+  },
+
   history: {
     title: 'Historik',
     none: 'Inga sessioner än.',

@@ -202,6 +202,20 @@ export const en = {
     note: 'Automatic follows the language of this device. The choice is saved on this device only.',
   },
 
+  backup: {
+    title: 'Backup',
+    noteDevice: 'Save the players and sessions on this device to a file, or add the ones from a file you saved earlier.',
+    noteAccount: 'Save the players and sessions in your account to a file, or add the ones from a file you saved earlier.',
+    export: 'Export to a file',
+    import: 'Import from a file',
+    importNote: 'Importing only adds what is missing. Players and sessions you already have are left as they are.',
+    imported: (p: number, s: number) => `Added ${playersAndSessions(p, s)} from the file.`,
+    nothingNew: 'Everything in that file is here already.',
+    notABackup: 'That file is not a Gursch backup.',
+    damaged: 'That backup could not be read. Nothing was changed.',
+    tooNew: 'That backup comes from a newer version of the app. Update the app and try again.',
+  },
+
   history: {
     title: 'History',
     none: 'No sessions yet.',

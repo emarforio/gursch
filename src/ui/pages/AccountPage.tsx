@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
+import { backupFileName, exportBackup, parseBackup } from '../../data/backup'
 import { firebaseConfigured } from '../../data/config'
 import { importLocal, markImport, pendingImport } from '../../data/migrate'
 import { localRepo, signIn, signOut, snapshotOf, SYNC_UNREACHABLE, useStore } from '../../data/store'
@@ -116,6 +117,7 @@ export function AccountPage() {
       )}
 
       <LanguagePicker />
+      <Backup />
     </section>
   )
 }
@@ -138,6 +140,70 @@ function LanguagePicker() {
         ]}
       />
       <p className="mt-2 text-sm text-muted">{t.language.note}</p>
+    </>
+  )
+}
+
+type BackupResult = { tone: 'good' | 'bad'; text: string }
+
+/** Saves the active data to a JSON file and adds the records of such a file back. */
+function Backup() {
+  const t = useT()
+  const user = useStore((s) => s.user)
+  const repo = useStore((s) => s.repo)
+  const players = useStore((s) => s.players)
+  const sessions = useStore((s) => s.sessions)
+  const settings = useStore((s) => s.settings)
+  const fileRef = useRef<HTMLInputElement>(null)
+  const [result, setResult] = useState<BackupResult | null>(null)
+  const data = { players, sessions, settings }
+
+  function download() {
+    const url = URL.createObjectURL(new Blob([exportBackup(data)], { type: 'application/json' }))
+    const link = document.createElement('a')
+    link.href = url
+    link.download = backupFileName()
+    link.click()
+    URL.revokeObjectURL(url)
+    setResult(null)
+  }
+
+  async function pick(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file) return
+    let backup: ReturnType<typeof parseBackup>
+    try {
+      backup = parseBackup(await file.text())
+    } catch {
+      backup = 'damaged'
+    }
+    if (typeof backup === 'string') return setResult({ tone: 'bad', text: t.backup[backup] })
+    const added = importLocal(backup, data, repo)
+    setResult(
+      added.players + added.sessions > 0
+        ? { tone: 'good', text: t.backup.imported(added.players, added.sessions) }
+        : { tone: 'good', text: t.backup.nothingNew },
+    )
+  }
+
+  return (
+    <>
+      <h2 className="mt-8 mb-2 font-semibold">{t.backup.title}</h2>
+      <p className="text-muted">{user ? t.backup.noteAccount : t.backup.noteDevice}</p>
+      <input ref={fileRef} type="file" accept="application/json,.json" className="hidden" onChange={pick} />
+      <div className="mt-3 flex flex-wrap gap-2">
+        <Button onClick={download} disabled={players.length + sessions.length === 0}>
+          {t.backup.export}
+        </Button>
+        <Button onClick={() => fileRef.current?.click()}>{t.backup.import}</Button>
+      </div>
+      <p className="mt-2 text-sm text-muted">{t.backup.importNote}</p>
+      {result && (
+        <p className={`mt-3 ${result.tone === 'good' ? 'text-good' : 'text-bad'}`}>
+          {result.text}
+        </p>
+      )}
     </>
   )
 }
