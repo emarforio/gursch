@@ -135,8 +135,7 @@ Security rules:
 
 ### localStorage layout
 
-One versioned key per collection: `gursch.v1.players`, `gursch.v1.sessions`, `gursch.v1.settings`. Include a schema version and a migration hook from the start. Data saved under the earlier `gurch.v1.*` keys is copied over on startup.
-
+One versioned key per collection: `gursch.v1.players`, `gursch.v1.sessions`, `gursch.v1.settings`. Include a schema version and a migration hook from the start.
 ## Domain logic
 
 ### Winner, loser and ties

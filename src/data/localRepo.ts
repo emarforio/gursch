@@ -25,25 +25,9 @@ function write(key: string, value: unknown) {
   }
 }
 
-/** The app was first called Gurch. Copy data saved under the old keys once. */
-function adoptOldKeys() {
-  try {
-    for (const key of Object.values(KEYS)) {
-      const old = key.replace('gursch.', 'gurch.')
-      const value = localStorage.getItem(old)
-      if (value !== null && localStorage.getItem(key) === null) localStorage.setItem(key, value)
-    }
-  } catch {
-    // Storage is blocked. Nothing to copy.
-  }
-}
-
 function load(): Data {
   return {
-    players: read<(Player & { archived?: boolean })[]>(KEYS.players, []).map(({ archived, ...p }) => ({
-      ...p,
-      guest: p.guest ?? archived ?? false,
-    })),
+    players: read<Player[]>(KEYS.players, []),
     sessions: read<Session[]>(KEYS.sessions, []),
     settings: { defaultConfig: DEFAULT_CONFIG, ...read<Partial<Settings>>(KEYS.settings, {}) },
   }
@@ -54,7 +38,6 @@ function upsert<T extends { id: string }>(list: T[], item: T): T[] {
 }
 
 export function createLocalRepo(): Repository {
-  adoptOldKeys()
   let data = load()
   const listeners = new Set<(d: Data) => void>()
   const emit = () => listeners.forEach((cb) => cb(data))
