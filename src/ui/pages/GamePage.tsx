@@ -60,7 +60,7 @@ export function GamePage({ session }: { session: Session }) {
     repo.saveSession(v === suggested ? rest : { ...rest, dealOverride: v })
   }
 
-  const link = 'flex h-9 items-center rounded-lg bg-sunken px-3 text-sm font-medium'
+  const link = 'flex min-h-11 items-center justify-center rounded-lg bg-sunken px-3 py-2 text-center text-sm leading-tight font-medium'
 
   return (
     <section>
@@ -96,15 +96,17 @@ export function GamePage({ session }: { session: Session }) {
         </p>
       )}
 
-      <div className="mt-8 mb-2 flex items-center gap-2">
-        <h2 className="min-w-0 flex-1 truncate font-semibold">{session.name}</h2>
+      {/* Where to go for everything about the session other than entering scores. The labels say what is there. */}
+      <div className="mt-6 grid grid-cols-2 gap-2">
         <Link to={`/session/${session.id}/seating`} className={link}>
-          {t.game.players}
+          {t.game.changePlayers}
         </Link>
         <Link to={`/session/${session.id}`} className={link}>
-          {t.game.details}
+          {t.game.manage}
         </Link>
       </div>
+
+      <h2 className="mt-8 mb-2 truncate font-semibold">{session.name}</h2>
       <ScoreTable session={session} person={person} onPickRound={(id) => navigate(`/session/${session.id}/round/${id}`)} />
     </section>
   )

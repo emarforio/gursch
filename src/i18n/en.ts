@@ -75,8 +75,8 @@ export const en = {
     cardsToDeal: 'Cards to deal',
     saved: (n: number) => `Round ${n} saved.`,
     undo: 'Undo',
-    players: 'Players',
-    details: 'Details',
+    changePlayers: 'Change players',
+    manage: 'Settings and end session',
     hints: {
       oneCard: 'Dealt face down, no trade. One extra face-up card each decides the leader.',
       twoCards: 'No first trade. An open trade is still allowed.',

@@ -68,8 +68,8 @@ export const sv: Dictionary = {
     cardsToDeal: 'Kort att dela ut',
     saved: (n) => `Runda ${n} sparad.`,
     undo: 'Ångra',
-    players: 'Spelare',
-    details: 'Detaljer',
+    changePlayers: 'Byt spelare',
+    manage: 'Inställningar och avsluta',
     hints: {
       oneCard: 'Delas ut nedvänt, inget byte. Ett extra uppvänt kort var avgör vem som blir ledare.',
       twoCards: 'Inget första byte. Ett öppet byte är fortfarande tillåtet.',
