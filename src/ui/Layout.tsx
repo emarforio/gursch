@@ -121,7 +121,7 @@ export function Layout() {
         className="flex-1 overflow-y-auto outline-none"
         style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
       >
-        <div className="mx-auto max-w-3xl px-4 py-5">
+        <div className="mx-auto flex min-h-full max-w-3xl flex-col px-4 py-5">
           {loading ? (
             <p className="text-muted" role="status">
               {t.nav.loading}

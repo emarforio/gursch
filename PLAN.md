@@ -12,6 +12,7 @@ Read `RULES.md` before working on anything. It is the source of truth for game r
 - No backend server of our own. Firebase provides auth, database and static hosting.
 - Score entry uses on-screen buttons only. The keyboard must never open during a round.
 - Score entry takes as few taps as possible: one tap per player plus one to save.
+- It is used on a phone at a pub table: a page's main action sits at the bottom of the screen.
 - The UI is available in English and Swedish. It follows the device language by default and can be changed. The house terms doffel/dofflar, troffel/trofflar, foffel/fofflar are used in both.
 
 ## Stack
@@ -247,6 +248,10 @@ Status: 1 to 7 are done and confirmed by Erik against the real Firebase project.
 - **Backup file:** `{ app: "gursch", version: 1, exportedAt, players, sessions, settings }`. Sessions are written without `ownerUid` and with `shared: false`, since sharing belongs to an account. Export takes the active data: the account when signed in, the device otherwise.
 - **Import:** every record is validated and one bad record rejects the whole file. Records are merged by id and existing ones are never overwritten, the same as the first-login copy (`importLocal`). A game in progress in the file is resumed if none is running.
 - **Accessibility:** rows that act as buttons (score table rounds, stats players) contain a real button so they work from the keyboard; one focus style everywhere; a skip link; the page name in the tab title; results and errors are announced (`role="status"` / `role="alert"`); tables have row and column headers; the card chart has a text alternative. Text colours meet WCAG AA contrast (4.5:1) on every background they are used on, in both themes.
+
+### After the milestones (requested by Erik on 2026-11-12)
+
+- **Bottom actions:** `BottomBar` pins the main action of Home, New session and Change players to the bottom of the screen. A bottom tab bar instead of the menu button was considered and left out; it would take height from the score entry.
 
 ### Milestone 9: Swedish translation
 

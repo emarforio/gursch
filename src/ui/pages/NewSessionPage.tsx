@@ -4,6 +4,7 @@ import { newId, useStore } from '../../data/store'
 import { maxDeal } from '../../domain/deal'
 import type { Player, Session, SessionPlayer } from '../../domain/types'
 import { useT } from '../../i18n'
+import { BottomBar } from '../components/BottomBar'
 import { Button } from '../components/Button'
 import { ConfigEditor, isConfigValid } from '../components/ConfigEditor'
 import { SeatingEditor } from '../components/SeatingEditor'
@@ -41,7 +42,7 @@ export function NewSessionPage() {
   }
 
   return (
-    <section>
+    <section className="flex flex-1 flex-col">
       <h1 className="text-2xl font-bold">{t.newSession.title}</h1>
 
       <h2 className="mt-5 font-semibold">{t.newSession.seating}</h2>
@@ -55,9 +56,11 @@ export function NewSessionPage() {
         </div>
       </details>
 
-      <Button variant="primary" className="mt-6 w-full" disabled={seats.length < 2 || !isConfigValid(config)} onClick={start}>
-        {seats.length < 2 ? t.newSession.needTwo : t.newSession.start(seats.length)}
-      </Button>
+      <BottomBar>
+        <Button variant="primary" className="h-13 w-full text-lg" disabled={seats.length < 2 || !isConfigValid(config)} onClick={start}>
+          {seats.length < 2 ? t.newSession.needTwo : t.newSession.start(seats.length)}
+        </Button>
+      </BottomBar>
     </section>
   )
 }
