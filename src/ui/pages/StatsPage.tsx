@@ -115,7 +115,13 @@ export function StatsPage() {
           </div>
           <p className="mt-1 text-sm text-muted">{t.stats.tapPlayer}</p>
 
-          <PlayerDetail p={selected} stats={stats} person={person} color={colorOf(selected.id)} allSessions={!scoped} />
+          <PlayerDetail
+            p={selected}
+            stats={stats}
+            person={person}
+            color={colorOf(selected.id)}
+            sessions={scoped ? null : sessions}
+          />
 
           <h2 className="mt-8 mb-2 font-semibold">{t.stats.whoPays}</h2>
           <ul className="divide-y divide-line rounded-xl bg-surface">
@@ -190,8 +196,13 @@ function Overview({ stats, person, allSessions }: { stats: Stats; person: Person
   )
 }
 
-function PlayerDetail(props: { p: PlayerStats; stats: Stats; person: Person; color: string; allSessions: boolean }) {
-  const { p, stats, person, color, allSessions } = props
+/** `sessions` is given when the stats cover all sessions, and adds the results per session. */
+function PlayerDetail(props: { p: PlayerStats; stats: Stats; person: Person; color: string; sessions: Session[] | null }) {
+  const { p, stats, person, color, sessions } = props
+  const allSessions = sessions !== null
+  const multi = ([2, 3, 4] as const).filter((f) => p.multiCard[f].rounds > 0)
+  const th = 'px-2 py-2 text-right font-medium'
+  const td = 'tabular px-2 py-2 text-right'
   const t = useT()
   const me = person(p.id)
   const others = stats.players
@@ -235,6 +246,66 @@ function PlayerDetail(props: { p: PlayerStats; stats: Stats; person: Person; col
           <h3 className="mt-5 mb-2 font-semibold">{t.stats.finalCards}</h3>
           <div className="rounded-xl bg-surface p-3">
             <CardBars key={p.id} counts={p.cards} color={color} />
+          </div>
+        </>
+      )}
+
+      {multi.length > 0 && (
+        <>
+          <h3 className="mt-5 mb-2 font-semibold">{t.stats.multiResults}</h3>
+          <div className="overflow-x-auto rounded-xl bg-surface">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-line text-muted">
+                  <th scope="col" className="px-3 py-2 text-left font-medium">{t.entry.finish}</th>
+                  <th scope="col" className={th}>{t.stats.rounds}</th>
+                  <th scope="col" className={th}>{t.stats.wins}</th>
+                  <th scope="col" className={`${th} pr-3`}>{t.stats.losses}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {multi.map((f) => (
+                  <tr key={f} className="border-t border-line">
+                    <th scope="row" className="px-3 py-2 text-left font-medium">{t.common.finishes[f]}</th>
+                    <td className={td}>{p.multiCard[f].rounds}</td>
+                    <td className={td}>{p.multiCard[f].wins}</td>
+                    <td className={`${td} pr-3`}>{p.multiCard[f].losses}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
+      )}
+
+      {sessions && p.perSession.length > 1 && (
+        <>
+          <h3 className="mt-5 mb-2 font-semibold">{t.stats.perSession}</h3>
+          <div className="overflow-x-auto rounded-xl bg-surface">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-line text-muted">
+                  <th scope="col" className="px-3 py-2 text-left font-medium">{t.stats.session}</th>
+                  <th scope="col" className={th}>{t.stats.rounds}</th>
+                  <th scope="col" className={th}>{t.stats.wins}</th>
+                  <th scope="col" className={th}>{t.stats.losses}</th>
+                  <th scope="col" className={`${th} pr-3`}>{t.stats.net}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[...p.perSession].reverse().map((r) => (
+                  <tr key={r.sessionId} className="border-t border-line">
+                    <th scope="row" className="w-full max-w-0 truncate px-3 py-2 text-left font-medium">
+                      {sessions.find((s) => s.id === r.sessionId)?.name ?? '?'}
+                    </th>
+                    <td className={td}>{r.rounds}</td>
+                    <td className={td}>{r.wins}</td>
+                    <td className={td}>{r.losses}</td>
+                    <td className={`${td} pr-3 font-semibold ${tone(r.net)}`}>{fmtSigned(r.net)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </>
       )}

@@ -31,6 +31,20 @@ describe('computeStats', () => {
   const stats = computeStats([s2, s1, session('empty', 3, [])])
   const p = (id: string) => stats.players.find((x) => x.id === id)!
 
+  it('gives each player their result per session, oldest first', () => {
+    expect(p('a').perSession).toEqual([
+      { sessionId: 's1', rounds: 3, wins: 2, losses: 1, net: 14 },
+      { sessionId: 's2', rounds: 1, wins: 0, losses: 1, net: -24 },
+    ])
+    expect(p('b').perSession.map((s) => s.net)).toEqual([24, 0])
+  })
+
+  it('counts results in multi-card finishes per player', () => {
+    expect(p('a').multiCard).toEqual({ 2: { rounds: 1, wins: 0, losses: 1 }, 3: { rounds: 0, wins: 0, losses: 0 }, 4: { rounds: 0, wins: 0, losses: 0 } })
+    expect(p('b').multiCard[2]).toEqual({ rounds: 1, wins: 1, losses: 0 })
+    expect(p('c').multiCard[2]).toEqual({ rounds: 1, wins: 0, losses: 0 })
+  })
+
   it('counts sessions and rounds, ignoring empty sessions', () => {
     expect(stats.sessions).toBe(2)
     expect(stats.rounds).toBe(4)

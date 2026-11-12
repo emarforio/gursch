@@ -2,6 +2,12 @@ import { balances } from './ledger'
 import { extremes } from './scoring'
 import type { Finish, Round, Session } from './types'
 
+/** A player's result in one session. */
+export type SessionResult = { sessionId: string; rounds: number; wins: number; losses: number; net: number }
+
+/** A player's results in rounds that ended on several cards. */
+export type MultiCardResult = { rounds: number; wins: number; losses: number }
+
 export type PlayerStats = {
   id: string
   sessions: number
@@ -27,6 +33,10 @@ export type PlayerStats = {
   tiesLost: number
   /** How often each final card value (2-14) occurred in single-card rounds. */
   cards: Record<number, number>
+  /** Results per session, oldest first. Only sessions the player took part in. */
+  perSession: SessionResult[]
+  /** Results in doffel (2), troffel (3) and foffel (4) finishes. */
+  multiCard: Record<2 | 3 | 4, MultiCardResult>
 }
 
 /** Money and rounds between two players: how often and how much `loser` paid `winner`. */
@@ -73,6 +83,8 @@ function emptyPlayer(id: string): PlayerStats {
     tiesWon: 0,
     tiesLost: 0,
     cards: {},
+    perSession: [],
+    multiCard: { 2: { rounds: 0, wins: 0, losses: 0 }, 3: { rounds: 0, wins: 0, losses: 0 }, 4: { rounds: 0, wins: 0, losses: 0 } },
   }
 }
 
@@ -105,11 +117,19 @@ export function computeStats(sessions: Session[]): Stats {
   for (const session of ordered) {
     if (session.rounds.length === 0) continue
     const took = new Set(session.rounds.flatMap((r) => r.seats))
+    const bal = balances(session.rounds)
     for (const id of took) {
+      const played = session.rounds.filter((r) => r.seats.includes(id))
       get(id).sessions++
+      get(id).perSession.push({
+        sessionId: session.id,
+        rounds: played.length,
+        wins: played.filter((r) => r.winnerId === id).length,
+        losses: played.filter((r) => r.loserId === id).length,
+        net: bal[id] ?? 0,
+      })
       running[id] ??= 0
     }
-    const bal = balances(session.rounds)
     const top = Math.max(...Object.values(bal))
     if (top > 0) for (const [id, v] of Object.entries(bal)) if (v === top) get(id).sessionsWon++
 
@@ -160,6 +180,11 @@ export function computeStats(sessions: Session[]): Stats {
           p.cards[score] = (p.cards[score] ?? 0) + 1
           if (score === 14) p.aces++
           if (score === 2) p.twos++
+        } else {
+          const multi = p.multiCard[round.finish]
+          multi.rounds++
+          if (won) multi.wins++
+          if (lost) multi.losses++
         }
       }
 
