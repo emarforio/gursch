@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import type { ReactNode } from 'react'
 import { useT } from '../../i18n'
 import { Button } from './Button'
 
@@ -23,22 +24,26 @@ export function Stepper(props: { value: number; min: number; max: number; onChan
 
 export function Segmented<T extends string | number>(props: {
   value: T
-  options: { value: T; label: string }[]
+  /** An icon is shown above the label. */
+  options: { value: T; label: string; icon?: ReactNode }[]
   onChange: (v: T) => void
   label: string
+  /** Fill the width, with equally wide options. */
+  full?: boolean
 }) {
   return (
-    <div className="inline-flex rounded-lg bg-sunken p-1" role="group" aria-label={props.label}>
+    <div className={`${props.full ? 'flex' : 'inline-flex'} rounded-lg bg-sunken p-1`} role="group" aria-label={props.label}>
       {props.options.map((o) => (
         <button
           key={String(o.value)}
           type="button"
           aria-pressed={o.value === props.value}
           onClick={() => props.onChange(o.value)}
-          className={`rounded-md px-3 py-1.5 text-sm font-medium ${
+          className={`flex flex-col items-center gap-1 rounded-md px-3 py-1.5 text-sm font-medium ${props.full ? 'flex-1' : ''} ${
             o.value === props.value ? 'bg-surface text-text shadow-sm' : 'text-muted'
           }`}
         >
+          {o.icon}
           {o.label}
         </button>
       ))}

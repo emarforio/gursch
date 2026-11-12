@@ -190,7 +190,7 @@ One versioned key per collection: `gursch.v1.players`, `gursch.v1.sessions`, `gu
 - Players are listed in seating order, with the first one active.
 - A grid of thirteen large buttons shows `2 3 4 5 6 7 8 9 10 J Q K A` (`Kn D K E` in Swedish). Tapping one sets the active player's card and moves to the next player.
 - Tapping a player's row makes that player active again to correct a value.
-- A finish selector (single, doffel, troffel, foffel; single by default and visually quiet) handles the rare multi-card finish. It only offers sizes up to the number of cards dealt.
+- A finish selector (single, doffel, troffel, foffel; single by default and visually quiet) handles the rare multi-card finish. It only offers sizes up to the number of cards dealt. Each option shows that many small cards. Changing the finish keeps the scores that are still in range for it and asks again only for the others.
 - On a multi-card finish the card grid is replaced by an on-screen number pad built from buttons, and the user enters each player's sum followed by "Next". The system keyboard still never opens. Sums outside the valid range are rejected.
 - When all players have a value, a summary appears: winner, loser, amount owed, suggested next deal.
 - If there is a tie for lowest or highest, the summary first shows "Who led the last trick?" with one button per player.

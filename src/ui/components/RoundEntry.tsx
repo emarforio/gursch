@@ -56,11 +56,18 @@ export function RoundEntry({ seats, person, formula, cards, initial, saveLabel, 
   }
 
   function changeFinish(next: Finish) {
+    // Keep the scores that are still possible with this many cards and ask again for the rest.
+    const kept: Scores = {}
+    for (const id of seats) {
+      const s = scores[id]
+      if (s !== undefined && isValidScore(s, next)) kept[id] = s
+    }
+    const changed = seats.some((id) => kept[id] !== scores[id])
     setFinish(next)
-    setScores({})
-    setActive(0)
+    setScores(kept)
+    setActive(seats.findIndex((id) => kept[id] === undefined))
     setDraft('')
-    setLeaderId(undefined)
+    if (changed) setLeaderId(undefined)
   }
 
   function enter(value: number) {
@@ -229,16 +236,30 @@ export function RoundEntry({ seats, person, formula, cards, initial, saveLabel, 
       </div>
 
       {finishOptions.length > 1 && (
-        <div className="mt-4 flex items-center justify-between gap-3">
-          <span className="text-sm text-muted">{t.entry.finishedOn}</span>
+        <div className="mt-4">
+          <div className="mb-1 text-sm text-muted">{t.entry.finishedOn}</div>
           <Segmented
+            full
             label={t.entry.finish}
             value={finish}
             onChange={changeFinish}
-            options={finishOptions.map((f) => ({ value: f, label: t.common.finishes[f] }))}
+            options={finishOptions.map((f) => ({ value: f, label: t.common.finishes[f], icon: <CardsIcon count={f} /> }))}
           />
         </div>
       )}
     </div>
+  )
+}
+
+/** As many small overlapping cards as the finish has. */
+function CardsIcon({ count }: { count: number }) {
+  const step = 5
+  const width = 10 + (count - 1) * step
+  return (
+    <svg width={width + 2} height={16} viewBox={`-1 -1 ${width + 2} 16`} aria-hidden>
+      {Array.from({ length: count }, (_, i) => (
+        <rect key={i} x={i * step} y={0} width={10} height={14} rx={2} fill="var(--surface)" stroke="currentColor" strokeWidth={1.5} />
+      ))}
+    </svg>
   )
 }
