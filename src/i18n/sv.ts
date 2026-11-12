@@ -46,8 +46,7 @@ export const sv: Dictionary = {
     stats: 'Statistik',
     players: 'Spelare',
     rules: 'Regler',
-    account: 'Konto',
-    accountOf: (name) => `Konto (${name})`,
+    settings: 'Inställningar',
     openMenu: 'Öppna menyn',
     closeMenu: 'Stäng menyn',
     skip: 'Hoppa till innehållet',
@@ -191,7 +190,7 @@ export const sv: Dictionary = {
     failed: 'Det fungerade inte. Kontrollera anslutningen och försök igen.',
     bannerTitle: 'Kopiera den här enhetens data till ditt konto?',
     bannerText: (p, s) =>
-      `Den här enheten har ${playersAndSessions(p, s)} som sparades innan du loggade in. Du kan också göra det senare från kontosidan.`,
+      `Den här enheten har ${playersAndSessions(p, s)} som sparades innan du loggade in. Du kan också göra det senare under Inställningar.`,
     notNow: 'Inte nu',
   },
 

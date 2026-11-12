@@ -39,7 +39,7 @@ export function SharePanel({ session }: { session: Session }) {
       <h2 className="font-semibold">{t.share.title}</h2>
       {!user ? (
         <p className="mt-1 text-muted">
-          <Link to="/account" className="text-accent underline">
+          <Link to="/settings" className="text-accent underline">
             {t.share.signIn}
           </Link>{' '}
           {t.share.signInRest}

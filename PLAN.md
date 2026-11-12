@@ -182,7 +182,7 @@ One versioned key per collection: `gursch.v1.players`, `gursch.v1.sessions`, `gu
 7. **Players** — add, rename, set picture. Removing a player who has played turns them into a guest; one who never played is deleted. Guests can be added on the fly when starting a session and promoted to regular players later.
 8. **Rules** — renders `RULES.md`.
 9. **Shared view** — `/s/{sessionId}`, read-only live view, no login needed.
-10. **Account** — sign in or out, language, export and import data as JSON. The default config is not edited here: a new session starts from the settings of the last one.
+10. **Settings** (`/settings`) — sign in or out, language, export and import data as JSON. Called Settings rather than Account because most of it applies without an account. The default config is not edited here: a new session starts from the settings of the last one.
 
 ### Round entry
 
@@ -230,7 +230,7 @@ Only rounds a player took part in count towards their averages.
 
 Each milestone should end with a working, deployable app.
 
-Status: 1 to 7 are done and confirmed by Erik against the real Firebase project. 8 and 9 are built and checked in a headless browser at phone width in both languages, but not yet confirmed by Erik. The Swedish wording in `src/i18n/sv.ts` and `RULES.sv.md` in particular needs a read by a native speaker who plays the game.
+Status: 1 to 7 are done and confirmed by Erik against the real Firebase project. 8 and 9 are built, checked in a headless browser at phone width in both languages, and deployed, but not yet confirmed by Erik. The Swedish wording in `src/i18n/sv.ts` and `RULES.sv.md` in particular needs a read by a native speaker who plays the game.
 
 1. **Scaffold** — Vite, React, TypeScript, Tailwind, router, lint, Vitest, empty pages, Firebase Hosting config.
 2. **Domain core** — everything in `domain/` with unit tests, including the tie-break cases and formula parser errors.
@@ -253,7 +253,7 @@ Status: 1 to 7 are done and confirmed by Erik against the real Firebase project.
 Requested by Erik on 2026-11-11: some people will prefer Swedish over English only.
 
 - **Default:** follow the device language. Use Swedish when the first entry in `navigator.languages` starts with `sv`, otherwise English.
-- **Changeable:** a language choice on the Account page (Automatic, English, Svenska). The choice is saved on the device in `localStorage` under `gursch.v1.language` and is not synced, so each device can differ. It must work signed out.
+- **Changeable:** a language choice on the Settings page (Automatic, English, Svenska). The choice is saved on the device in `localStorage` under `gursch.v1.language` and is not synced, so each device can differ. It must work signed out.
 - **Mechanism:** no i18n library. One typed dictionary per language in `src/i18n/` (`en.ts`, `sv.ts`), with `en.ts` defining the `Dictionary` type so a missing Swedish string is a type error. A small `useT()` hook returns the active dictionary, used as `t.home.newSession` or `t.common.rounds(3)`. Strings with numbers are functions and handle plurals in code.
 - **Scope:** every user-visible string, including button labels, empty states, error messages, `aria-label`s, chart labels and tooltips, the deal hints in `src/domain/deal.ts` and the formula error messages in `src/domain/formula.ts`. The domain layer should return message keys or codes, not English sentences, so it stays free of UI concerns.
 - **Rules page:** add `RULES.sv.md` as a full Swedish version of `RULES.md` and render the one matching the language. Keep the two in step when rules change.

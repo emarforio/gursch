@@ -32,7 +32,8 @@ export function useImport() {
   }
 }
 
-export function AccountPage() {
+/** Everything that is about the app rather than a game: the account, language, screen, backup and deleting data. */
+export function SettingsPage() {
   const user = useStore((s) => s.user)
   const syncError = useStore((s) => s.syncError)
   const pending = useImport()
@@ -58,13 +59,15 @@ export function AccountPage() {
 
   return (
     <section>
-      <h1 className="text-2xl font-bold">{t.account.title}</h1>
+      <h1 className="text-2xl font-bold">{t.nav.settings}</h1>
+
+      <h2 className="mt-5 font-semibold">{t.account.title}</h2>
 
       {!firebaseConfigured ? (
-        <p className="mt-3 text-muted">{t.account.notConfigured}</p>
+        <p className="mt-2 text-muted">{t.account.notConfigured}</p>
       ) : user ? (
         <>
-          <div className="mt-4 flex items-center gap-3 rounded-xl bg-surface p-3">
+          <div className="mt-2 flex items-center gap-3 rounded-xl bg-surface p-3">
             <Avatar name={user.name || t.account.signedIn} avatar={user.photo} size={44} />
             <div className="min-w-0 flex-1">
               <div className="truncate font-semibold">{user.name || t.account.signedIn}</div>
@@ -99,8 +102,8 @@ export function AccountPage() {
         </>
       ) : (
         <>
-          <p className="mt-3 text-muted">{t.account.noAccountNeeded}</p>
-          <Button variant="primary" className="mt-5" disabled={busy} onClick={() => run(signIn)}>
+          <p className="mt-2 text-muted">{t.account.noAccountNeeded}</p>
+          <Button variant="primary" className="mt-3" disabled={busy} onClick={() => run(signIn)}>
             {t.account.signInGoogle}
           </Button>
           {syncMessage && (

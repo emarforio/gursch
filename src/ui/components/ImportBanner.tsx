@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { importAnswered, markImport } from '../../data/migrate'
 import { useT } from '../../i18n'
-import { useImport } from '../pages/AccountPage'
+import { useImport } from '../pages/SettingsPage'
 import { Button } from './Button'
 
 /** Asks once, after the first sign-in on a device, whether to copy its local data into the account. */

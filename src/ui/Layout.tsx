@@ -26,7 +26,7 @@ export function Layout() {
   useEffect(() => setOpen(false), [location])
 
   // Name the page in the tab title, so tabs and screen readers can tell pages apart.
-  const section = [...pages, { to: '/account', label: t.nav.account }].find((p) => p.to !== '/' && location.pathname.startsWith(p.to))
+  const section = [...pages, { to: '/settings', label: t.nav.settings }].find((p) => p.to !== '/' && location.pathname.startsWith(p.to))
   useEffect(() => {
     document.title = section ? `${section.label} · Gursch` : 'Gursch'
   }, [section?.label])
@@ -70,11 +70,11 @@ export function Layout() {
               </NavLink>
             ))}
             <NavLink
-              to="/account"
-              aria-label={userName ? t.nav.accountOf(userName) : t.nav.account}
+              to="/settings"
+              aria-label={t.nav.settings}
               className={({ isActive }) => `ml-1 flex items-center px-1 text-sm font-medium ${isActive ? 'text-accent' : 'text-muted'}`}
             >
-              {user ? <Avatar name={userName!} avatar={user.photo} size={30} /> : t.nav.account}
+              {user ? <Avatar name={userName!} avatar={user.photo} size={30} /> : t.nav.settings}
             </NavLink>
           </nav>
 
@@ -94,7 +94,7 @@ export function Layout() {
 
         {open && (
           <nav id="menu" className="absolute inset-x-0 top-full border-b border-line bg-surface shadow-lg sm:hidden">
-            {[...pages, { to: '/account', label: userName ? t.nav.accountOf(userName) : t.nav.account }].map((p) => (
+            {[...pages, { to: '/settings', label: t.nav.settings }].map((p) => (
               <NavLink
                 key={p.to}
                 to={p.to}

@@ -53,8 +53,7 @@ export const en = {
     stats: 'Stats',
     players: 'Players',
     rules: 'Rules',
-    account: 'Account',
-    accountOf: (name: string) => `Account (${name})`,
+    settings: 'Settings',
     openMenu: 'Open menu',
     closeMenu: 'Close menu',
     skip: 'Skip to content',
@@ -197,7 +196,7 @@ export const en = {
     failed: 'That did not work. Check your connection and try again.',
     bannerTitle: "Copy this device's data to your account?",
     bannerText: (p: number, s: number) =>
-      `This device has ${playersAndSessions(p, s)} saved from before you signed in. You can also do this later from the Account page.`,
+      `This device has ${playersAndSessions(p, s)} saved from before you signed in. You can also do this later from Settings.`,
     notNow: 'Not now',
   },
 
