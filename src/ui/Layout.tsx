@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useStore } from '../data/store'
 import { useT } from '../i18n'
@@ -11,6 +11,7 @@ export function Layout() {
   const t = useT()
   const [open, setOpen] = useState(false)
   const location = useLocation()
+  const main = useRef<HTMLElement>(null)
 
   const pages = [
     { to: '/', label: t.nav.game },
@@ -24,8 +25,32 @@ export function Layout() {
   // Close the menu whenever the page changes.
   useEffect(() => setOpen(false), [location])
 
+  // Name the page in the tab title, so tabs and screen readers can tell pages apart.
+  const section = [...pages, { to: '/account', label: t.nav.account }].find((p) => p.to !== '/' && location.pathname.startsWith(p.to))
+  useEffect(() => {
+    document.title = section ? `${section.label} · Gursch` : 'Gursch'
+  }, [section?.label])
+
+  useEffect(() => {
+    if (!open) return
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false)
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [open])
+
   return (
     <div className="flex h-full flex-col">
+      <a
+        href="#main"
+        onClick={(e) => {
+          // Move focus without changing the address, which the router owns.
+          e.preventDefault()
+          main.current?.focus()
+        }}
+        className="sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-2 focus:z-30 focus:rounded-lg focus:bg-accent focus:px-3 focus:py-2 focus:text-accent-text"
+      >
+        {t.nav.skip}
+      </a>
       <header className="relative z-20 border-b border-line bg-surface">
         <div className="mx-auto flex h-12 max-w-3xl items-center gap-2 px-4">
           <NavLink to="/" className="flex-1 text-lg font-bold">
@@ -58,6 +83,7 @@ export function Layout() {
             className="-mr-2 flex h-11 w-11 items-center justify-center rounded-lg sm:hidden"
             aria-label={open ? t.nav.closeMenu : t.nav.openMenu}
             aria-expanded={open}
+            aria-controls="menu"
             onClick={() => setOpen(!open)}
           >
             <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
@@ -67,7 +93,7 @@ export function Layout() {
         </div>
 
         {open && (
-          <nav className="absolute inset-x-0 top-full border-b border-line bg-surface shadow-lg sm:hidden">
+          <nav id="menu" className="absolute inset-x-0 top-full border-b border-line bg-surface shadow-lg sm:hidden">
             {[...pages, { to: '/account', label: userName ? t.nav.accountOf(userName) : t.nav.account }].map((p) => (
               <NavLink
                 key={p.to}
@@ -85,12 +111,21 @@ export function Layout() {
         )}
       </header>
 
-      {open && <button className="fixed inset-0 z-10 bg-black/30 sm:hidden" aria-label={t.nav.closeMenu} onClick={() => setOpen(false)} />}
+      {/* Tapping outside closes the menu. Keyboard users have the menu button and Escape. */}
+      {open && <div className="fixed inset-0 z-10 bg-black/30 sm:hidden" aria-hidden onClick={() => setOpen(false)} />}
 
-      <main className="flex-1 overflow-y-auto" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+      <main
+        id="main"
+        ref={main}
+        tabIndex={-1}
+        className="flex-1 overflow-y-auto outline-none"
+        style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+      >
         <div className="mx-auto max-w-3xl px-4 py-5">
           {loading ? (
-            <p className="text-muted">{t.nav.loading}</p>
+            <p className="text-muted" role="status">
+              {t.nav.loading}
+            </p>
           ) : (
             <>
               <ImportBanner />

@@ -120,7 +120,7 @@ function PlayerRow(props: { player: Player; editing: boolean; onToggle: () => vo
             </Button>
           </div>
 
-          <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={pickPicture} />
+          <input ref={fileRef} type="file" accept="image/*" className="hidden" tabIndex={-1} aria-hidden onChange={pickPicture} />
           <div className="flex flex-wrap gap-2">
             <Button size="sm" onClick={() => fileRef.current?.click()}>
               {player.avatar ? t.players.changePicture : t.players.addPicture}
@@ -147,7 +147,11 @@ function PlayerRow(props: { player: Player; editing: boolean; onToggle: () => vo
               </Button>
             )}
           </div>
-          {error && <p className="text-sm text-bad">{error}</p>}
+          {error && (
+            <p className="text-sm text-bad" role="alert">
+              {error}
+            </p>
+          )}
         </div>
       )}
     </li>

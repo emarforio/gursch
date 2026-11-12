@@ -81,12 +81,12 @@ export function StatsPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-line text-muted">
-                  <th className="px-3 py-2 text-left font-medium">{t.stats.player}</th>
-                  <th className="px-2 py-2 text-right font-medium">{t.stats.rounds}</th>
-                  <th className="px-2 py-2 text-right font-medium">{t.stats.won}</th>
-                  <th className="px-2 py-2 text-right font-medium">{t.stats.lost}</th>
-                  <th className="px-2 py-2 text-right font-medium">{t.stats.avg}</th>
-                  <th className="px-3 py-2 text-right font-medium">{t.stats.net}</th>
+                  <th scope="col" className="px-3 py-2 text-left font-medium">{t.stats.player}</th>
+                  <th scope="col" className="px-2 py-2 text-right font-medium">{t.stats.rounds}</th>
+                  <th scope="col" className="px-2 py-2 text-right font-medium">{t.stats.won}</th>
+                  <th scope="col" className="px-2 py-2 text-right font-medium">{t.stats.lost}</th>
+                  <th scope="col" className="px-2 py-2 text-right font-medium">{t.stats.avg}</th>
+                  <th scope="col" className="px-3 py-2 text-right font-medium">{t.stats.net}</th>
                 </tr>
               </thead>
               <tbody>
@@ -96,12 +96,13 @@ export function StatsPage() {
                     onClick={() => setPickedId(p.id)}
                     className={`cursor-pointer border-t border-line ${p.id === selected.id ? 'bg-sunken' : ''}`}
                   >
-                    <td className="w-full max-w-0 px-3 py-2">
-                      <span className="flex items-center gap-2">
+                    <th scope="row" className="w-full max-w-0 px-3 py-2 text-left font-normal">
+                      {/* The whole row is the tap target. This button makes it reachable by keyboard; its click bubbles to the row. */}
+                      <button type="button" aria-pressed={p.id === selected.id} className="flex w-full items-center gap-2 rounded text-left">
                         <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: colorOf(p.id) }} />
                         <span className="truncate font-medium">{person(p.id).name}</span>
-                      </span>
-                    </td>
+                      </button>
+                    </th>
                     <td className="tabular px-2 py-2 text-right">{p.rounds}</td>
                     <td className="tabular px-2 py-2 text-right">{pct(p.wins, p.rounds)}</td>
                     <td className="tabular px-2 py-2 text-right">{pct(p.losses, p.rounds)}</td>
@@ -245,16 +246,16 @@ function PlayerDetail(props: { p: PlayerStats; stats: Stats; person: Person; col
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-line text-muted">
-                  <th className="px-3 py-2 text-left font-medium">{t.stats.opponent}</th>
-                  <th className="px-2 py-2 text-right font-medium">{t.stats.took}</th>
-                  <th className="px-2 py-2 text-right font-medium">{t.stats.paid}</th>
-                  <th className="px-3 py-2 text-right font-medium">{t.stats.net}</th>
+                  <th scope="col" className="px-3 py-2 text-left font-medium">{t.stats.opponent}</th>
+                  <th scope="col" className="px-2 py-2 text-right font-medium">{t.stats.took}</th>
+                  <th scope="col" className="px-2 py-2 text-right font-medium">{t.stats.paid}</th>
+                  <th scope="col" className="px-3 py-2 text-right font-medium">{t.stats.net}</th>
                 </tr>
               </thead>
               <tbody>
                 {others.map((o) => (
                   <tr key={o.id} className="border-t border-line">
-                    <td className="px-3 py-2 font-medium">{person(o.id).name}</td>
+                    <th scope="row" className="px-3 py-2 text-left font-medium">{person(o.id).name}</th>
                     <td className="tabular px-2 py-2 text-right">
                       {fmtMoney(o.took?.amount ?? 0)} <span className="text-muted">({o.took?.count ?? 0})</span>
                     </td>

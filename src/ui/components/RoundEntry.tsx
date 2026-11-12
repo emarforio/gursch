@@ -110,6 +110,7 @@ export function RoundEntry({ seats, person, formula, cards, initial, saveLabel, 
           const isActive = i === active
           const won = outcome?.winnerId === id
           const lost = outcome?.loserId === id
+          const shown = s === undefined ? t.entry.noScore : finish === 1 ? (t.common.faceCards[s] ?? String(s)) : String(s)
           return (
             <li key={id} className={i > 0 ? 'border-t border-line' : ''}>
               <button
@@ -118,6 +119,7 @@ export function RoundEntry({ seats, person, formula, cards, initial, saveLabel, 
                   setDraft('')
                 }}
                 aria-current={isActive}
+                aria-label={[p.name, shown, won && t.common.winner, lost && t.common.loser].filter(Boolean).join(', ')}
                 className={`flex h-13 w-full items-center gap-3 border-l-4 px-3 text-left ${
                   isActive ? 'border-accent bg-sunken' : 'border-transparent'
                 }`}
@@ -188,7 +190,7 @@ export function RoundEntry({ seats, person, formula, cards, initial, saveLabel, 
             </div>
           )
         ) : tie && !leaderId ? (
-          <div className="rounded-xl bg-surface p-3">
+          <div className="rounded-xl bg-surface p-3" role="status">
             <p className="font-semibold">{t.entry.tieQuestion}</p>
             <div className="mt-3 grid grid-cols-2 gap-2">
               {seats.map((id) => (
@@ -200,7 +202,7 @@ export function RoundEntry({ seats, person, formula, cards, initial, saveLabel, 
           </div>
         ) : (
           outcome && (
-            <div className="rounded-xl bg-surface p-3">
+            <div className="rounded-xl bg-surface p-3" role="status">
               {amountError ? (
                 <p className="text-bad">{t.entry.formulaError(amountError)}</p>
               ) : (

@@ -17,13 +17,16 @@ export function ScoreTable({ session, person, onPickRound }: Props) {
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b border-line text-muted">
-            <th className="px-2 py-2 text-left font-medium">#</th>
+            <th scope="col" className="px-2 py-2 text-left font-medium">
+              <span aria-hidden>#</span>
+              <span className="sr-only">{t.table.round}</span>
+            </th>
             {ids.map((id) => (
-              <th key={id} className="max-w-20 truncate px-2 py-2 font-semibold text-text">
+              <th key={id} scope="col" className="max-w-20 truncate px-2 py-2 font-semibold text-text">
                 {person(id).name}
               </th>
             ))}
-            <th className="px-2 py-2 text-right font-medium">{t.table.owed}</th>
+            <th scope="col" className="px-2 py-2 text-right font-medium">{t.table.owed}</th>
           </tr>
         </thead>
         <tbody>
@@ -37,10 +40,17 @@ export function ScoreTable({ session, person, onPickRound }: Props) {
               className={`border-t border-line ${onPickRound ? 'cursor-pointer active:bg-sunken' : ''}`}
               onClick={onPickRound && (() => onPickRound(r.id))}
             >
-              <td className="px-2 py-1.5 text-left text-muted tabular">
-                {n}
+              <th scope="row" className="px-2 py-1.5 text-left font-normal text-muted tabular">
+                {onPickRound ? (
+                  // The whole row is the tap target. This button makes it reachable by keyboard; its click bubbles to the row.
+                  <button type="button" aria-label={t.table.changeRound(n)} className="-m-1 rounded p-1">
+                    {n}
+                  </button>
+                ) : (
+                  n
+                )}
                 {r.finish > 1 && <span className="ml-1 text-xs">{t.common.finishes[r.finish]}</span>}
-              </td>
+              </th>
               {ids.map((id) => {
                 const s = r.scores[id]
                 const tone = id === r.winnerId ? 'font-bold text-good' : id === r.loserId ? 'font-bold text-bad' : ''
@@ -77,7 +87,9 @@ function SummaryRow(props: {
 }) {
   return (
     <tr className="bg-sunken/50">
-      <td className="px-2 py-1 text-left text-xs text-muted">{props.label}</td>
+      <th scope="row" className="px-2 py-1 text-left text-xs font-normal text-muted">
+        {props.label}
+      </th>
       {props.ids.map((id) => {
         const t = props.tone?.(id) ?? 0
         const colour = t > 0 ? 'text-good' : t < 0 ? 'text-bad' : ''

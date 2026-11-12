@@ -89,6 +89,7 @@ export function SeatingEditor({ seats, onChange, extra = [] }: Props) {
               key={p.id}
               disabled={full}
               onClick={() => onChange([...seats, p.id])}
+              aria-label={t.seating.add(p.name)}
               className="flex h-11 items-center gap-2 rounded-full bg-surface pl-1.5 pr-4 font-medium disabled:opacity-40"
             >
               <Avatar name={p.name} avatar={p.avatar} size={32} />

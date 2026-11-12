@@ -181,12 +181,18 @@ export function CardBars({ counts, color }: { counts: Record<number, number>; co
 
   return (
     <div>
-      <p className="mb-1 text-sm text-muted" aria-live="polite">
+      <p className="mb-1 text-sm text-muted" aria-hidden>
         {picked === null ? t.charts.tapBar : describe(picked)}
       </p>
+      {/* The same numbers as text, for screen readers. */}
+      <ul className="sr-only" aria-label={t.charts.cardsLabel}>
+        {VALUES.filter((v) => counts[v]).map((v) => (
+          <li key={v}>{describe(v)}</li>
+        ))}
+      </ul>
       <div ref={ref}>
         {width > 0 && (
-          <svg width={width} height={H} role="img" aria-label={t.charts.cardsLabel} style={{ display: 'block' }}>
+          <svg width={width} height={H} aria-hidden style={{ display: 'block' }}>
             <line x1={0} x2={width} y1={m.t + ih} y2={m.t + ih} stroke="var(--line)" />
             {VALUES.map((v, i) => {
               const c = counts[v] ?? 0

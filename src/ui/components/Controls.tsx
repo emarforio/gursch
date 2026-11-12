@@ -11,7 +11,9 @@ export function Stepper(props: { value: number; min: number; max: number; onChan
       <button type="button" className={btn} disabled={value <= min} onClick={() => onChange(value - 1)} aria-label={t.common.fewer}>
         −
       </button>
-      <span className="tabular w-8 text-center text-lg font-semibold">{value}</span>
+      <span className="tabular w-8 text-center text-lg font-semibold" aria-live="polite">
+        {value}
+      </span>
       <button type="button" className={btn} disabled={value >= max} onClick={() => onChange(value + 1)} aria-label={t.common.more}>
         +
       </button>

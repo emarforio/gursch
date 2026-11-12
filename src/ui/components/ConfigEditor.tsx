@@ -106,9 +106,11 @@ export function ConfigEditor({ config, onChange, playerCount, showStartCards }: 
           autoCapitalize="off"
           autoCorrect="off"
           spellCheck={false}
+          aria-invalid={error !== null}
+          aria-describedby="formula-note"
           className="h-11 w-full rounded-lg bg-bg px-3 outline-none ring-1 ring-line focus:ring-2 focus:ring-accent"
         />
-        <p className={`mt-1 text-sm ${error ? 'text-bad' : 'text-muted'}`}>
+        <p id="formula-note" aria-live="polite" className={`mt-1 text-sm ${error ? 'text-bad' : 'text-muted'}`}>
           {error ?? t.config.example(example ?? '')}
         </p>
         <div className="mt-2 flex flex-wrap gap-2">

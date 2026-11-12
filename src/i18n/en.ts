@@ -57,6 +57,7 @@ export const en = {
     accountOf: (name: string) => `Account (${name})`,
     openMenu: 'Open menu',
     closeMenu: 'Close menu',
+    skip: 'Skip to content',
     loading: 'Loading your data…',
     notFound: 'Not found',
     notFoundNote: 'That page does not exist.',
@@ -83,6 +84,7 @@ export const en = {
 
   entry: {
     saveRound: 'Save round',
+    noScore: 'no score yet',
     sumPrompt: (name: string, count: number, min: number, max: number) => `Sum of ${name}'s ${count} cards, ${min} to ${max}.`,
     delete: 'Delete',
     next: 'Next',
@@ -126,6 +128,7 @@ export const en = {
   },
 
   table: {
+    round: 'Round',
     owed: 'Owed',
     balance: 'Balance',
     wins: 'Wins',
@@ -133,6 +136,7 @@ export const en = {
     average: 'Average',
     noRounds: 'No rounds played yet.',
     tapRound: 'Tap a round to change or delete it.',
+    changeRound: (n: number) => `Change round ${n}`,
   },
 
   seating: {
@@ -140,6 +144,7 @@ export const en = {
     moveUp: (name: string) => `Move ${name} up`,
     moveDown: (name: string) => `Move ${name} down`,
     remove: (name: string) => `Remove ${name}`,
+    add: (name: string) => `Add ${name}`,
     someoneNew: 'Someone new',
     newPlayerName: 'New player name',
     guest: 'Guest',

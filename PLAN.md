@@ -242,10 +242,11 @@ Status: 1 to 7 are done and confirmed by Erik against the real Firebase project.
 8. **Polish** — PWA install and offline, JSON export and import, empty states, accessibility pass.
 9. **Swedish translation** — the whole app in Swedish as well as English. See below.
 
-### Milestone 8: backup file
+### Milestone 8: backup file and accessibility
 
 - **Backup file:** `{ app: "gursch", version: 1, exportedAt, players, sessions, settings }`. Sessions are written without `ownerUid` and with `shared: false`, since sharing belongs to an account. Export takes the active data: the account when signed in, the device otherwise.
 - **Import:** every record is validated and one bad record rejects the whole file. Records are merged by id and existing ones are never overwritten, the same as the first-login copy (`importLocal`). A game in progress in the file is resumed if none is running.
+- **Accessibility:** rows that act as buttons (score table rounds, stats players) contain a real button so they work from the keyboard; one focus style everywhere; a skip link; the page name in the tab title; results and errors are announced (`role="status"` / `role="alert"`); tables have row and column headers; the card chart has a text alternative. Text colours meet WCAG AA contrast (4.5:1) on every background they are used on, in both themes.
 
 ### Milestone 9: Swedish translation
 

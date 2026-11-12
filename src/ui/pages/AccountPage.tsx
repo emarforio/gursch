@@ -73,7 +73,7 @@ export function AccountPage() {
           </div>
           <p className="mt-3 text-muted">{t.account.synced}</p>
           {syncMessage && (
-            <p className="mt-3 text-bad">
+            <p className="mt-3 text-bad" role="alert">
               {t.account.syncProblem(syncMessage)}
             </p>
           )}
@@ -87,7 +87,7 @@ export function AccountPage() {
             </div>
           )}
           {copied && (
-            <p className="mt-3 text-good">
+            <p className="mt-3 text-good" role="status">
               {t.account.copied(copied.players, copied.sessions)}
             </p>
           )}
@@ -104,14 +104,14 @@ export function AccountPage() {
             {t.account.signInGoogle}
           </Button>
           {syncMessage && (
-            <p className="mt-3 text-bad">
+            <p className="mt-3 text-bad" role="alert">
               {syncMessage}
             </p>
           )}
         </>
       )}
       {failed && (
-        <p className="mt-3 text-bad">
+        <p className="mt-3 text-bad" role="alert">
           {t.account.failed}
         </p>
       )}
@@ -191,7 +191,7 @@ function Backup() {
     <>
       <h2 className="mt-8 mb-2 font-semibold">{t.backup.title}</h2>
       <p className="text-muted">{user ? t.backup.noteAccount : t.backup.noteDevice}</p>
-      <input ref={fileRef} type="file" accept="application/json,.json" className="hidden" onChange={pick} />
+      <input ref={fileRef} type="file" accept="application/json,.json" className="hidden" tabIndex={-1} aria-hidden onChange={pick} />
       <div className="mt-3 flex flex-wrap gap-2">
         <Button onClick={download} disabled={players.length + sessions.length === 0}>
           {t.backup.export}
@@ -200,7 +200,7 @@ function Backup() {
       </div>
       <p className="mt-2 text-sm text-muted">{t.backup.importNote}</p>
       {result && (
-        <p className={`mt-3 ${result.tone === 'good' ? 'text-good' : 'text-bad'}`}>
+        <p className={`mt-3 ${result.tone === 'good' ? 'text-good' : 'text-bad'}`} role={result.tone === 'good' ? 'status' : 'alert'}>
           {result.text}
         </p>
       )}

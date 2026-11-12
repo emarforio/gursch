@@ -39,7 +39,11 @@ export function SharedPage() {
     }
   }, [id])
 
-  if (state.status === 'loading') return <p className="text-muted">{t.shared.loading}</p>
+  if (state.status === 'loading') return (
+      <p className="text-muted" role="status">
+        {t.shared.loading}
+      </p>
+    )
   if (state.status === 'error') {
     return (
       <section>

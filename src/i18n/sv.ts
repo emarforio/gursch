@@ -50,6 +50,7 @@ export const sv: Dictionary = {
     accountOf: (name) => `Konto (${name})`,
     openMenu: 'Öppna menyn',
     closeMenu: 'Stäng menyn',
+    skip: 'Hoppa till innehållet',
     loading: 'Läser in dina data…',
     notFound: 'Sidan finns inte',
     notFoundNote: 'Den sidan finns inte.',
@@ -76,6 +77,7 @@ export const sv: Dictionary = {
 
   entry: {
     saveRound: 'Spara rundan',
+    noScore: 'ingen poäng än',
     sumPrompt: (name, count, min, max) => `Summan av ${genitive(name)} ${count} kort, ${min} till ${max}.`,
     delete: 'Radera',
     next: 'Nästa',
@@ -119,6 +121,7 @@ export const sv: Dictionary = {
   },
 
   table: {
+    round: 'Runda',
     owed: 'Skuld',
     balance: 'Saldo',
     wins: 'Vinster',
@@ -126,6 +129,7 @@ export const sv: Dictionary = {
     average: 'Snitt',
     noRounds: 'Inga rundor spelade än.',
     tapRound: 'Tryck på en runda för att ändra eller ta bort den.',
+    changeRound: (n) => `Ändra runda ${n}`,
   },
 
   seating: {
@@ -133,6 +137,7 @@ export const sv: Dictionary = {
     moveUp: (name) => `Flytta upp ${name}`,
     moveDown: (name) => `Flytta ner ${name}`,
     remove: (name) => `Ta bort ${name}`,
+    add: (name) => `Lägg till ${name}`,
     someoneNew: 'Någon ny',
     newPlayerName: 'Namn på ny spelare',
     guest: 'Gäst',

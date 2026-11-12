@@ -6,7 +6,7 @@
   --sunken: #ecebe6;
   --line: #dddbd3;
   --text: #1d1e20;
-  --muted: #6b6c70;
+  --muted: #5f6064;
   --accent: #1f6f54;
   --accent-text: #ffffff;
   --good: #1f6f54;
@@ -77,6 +77,14 @@ body {
 button {
   cursor: pointer;
   touch-action: manipulation;
+}
+
+/* One visible keyboard focus style everywhere. In the base layer so fields with their own ring can turn it off. */
+@layer base {
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
 }
 
 .tabular {
