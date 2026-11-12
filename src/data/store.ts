@@ -3,6 +3,7 @@ import { DEFAULT_CONFIG } from '../domain/types'
 import { firebaseConfigured } from './config'
 import type { CloudRepository, User } from './firebase'
 import { createLocalRepo } from './localRepo'
+import { forgetImport, importLocal } from './migrate'
 import type { Data, Repository } from './repository'
 
 type Store = Data & {
@@ -98,6 +99,29 @@ export async function signIn() {
 
 export async function signOut() {
   await (await firebase()).signOut()
+}
+
+/**
+ * Deletes the signed-in account and everything saved in it, after the user
+ * has signed in once more to confirm. With `keepCopy` the account's players
+ * and sessions are first added to this device, without overwriting what is
+ * already there. Returns what was added to the device.
+ */
+export async function deleteAccount(keepCopy: boolean): Promise<{ players: number; sessions: number }> {
+  const fb = await firebase()
+  const { user, loading, players, sessions, settings } = useStore.getState()
+  if (!user || loading) throw new Error('Not signed in')
+  const confirmed = await fb.confirmIdentity()
+  let kept = { players: 0, sessions: 0 }
+  const local = snapshotOf(localRepo)
+  if (keepCopy && local) {
+    // Sharing and ownership belong to the account, so the copies are plain local sessions.
+    const copies = sessions.map(({ ownerUid: _owner, ...s }) => ({ ...s, shared: false }))
+    kept = importLocal({ players, sessions: copies, settings }, local, localRepo)
+  }
+  await fb.deleteAccount(confirmed)
+  forgetImport(user.uid)
+  return kept
 }
 
 /** Reads a repository's current data once. */

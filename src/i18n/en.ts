@@ -200,6 +200,22 @@ export const en = {
     bannerText: (p: number, s: number) =>
       `This device has ${playersAndSessions(p, s)} saved from before you signed in. You can also do this later from Settings.`,
     notNow: 'Not now',
+    deleteTitle: 'Delete account',
+    deleteNote:
+      'Removes your account and everything saved in it, and share links stop working. This cannot be undone. You are asked to sign in with Google once more to confirm.',
+    keepCopy: 'Keep a copy of my players and sessions on this device',
+    delete: 'Delete my account',
+    deleteConfirm: 'Yes, delete my account',
+    deleted: 'Your account has been deleted.',
+    deletedKept: (p: number, s: number) => `Your account has been deleted. ${playersAndSessions(p, s)} from it ${p + s === 1 ? 'is' : 'are'} now saved on this device.`,
+    deleteWrongAccount: 'That was a different Google account. Nothing was deleted.',
+    deleteFailed: 'The account could not be deleted. Check your connection and try again.',
+    clearTitle: 'Delete the data on this device',
+    clearNote: (p: number, s: number) =>
+      `Removes the ${playersAndSessions(p, s)} saved on this device. This cannot be undone, so export a backup first if you want to keep anything.`,
+    clear: 'Delete everything on this device',
+    clearConfirm: 'Yes, delete everything',
+    cleared: 'Everything saved on this device has been deleted.',
   },
 
   screen: {

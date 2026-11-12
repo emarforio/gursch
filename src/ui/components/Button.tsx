@@ -1,7 +1,7 @@
 import type { ButtonHTMLAttributes } from 'react'
 
 type Props = ButtonHTMLAttributes<HTMLButtonElement> & {
-  variant?: 'primary' | 'plain' | 'quiet' | 'danger'
+  variant?: 'primary' | 'plain' | 'quiet' | 'danger' | 'destructive'
   size?: 'md' | 'sm'
 }
 
@@ -10,6 +10,8 @@ const variants = {
   plain: 'bg-sunken text-text',
   quiet: 'text-muted',
   danger: 'text-bad',
+  // Solid red, for the few actions that cannot be undone.
+  destructive: 'bg-bad text-surface',
 }
 
 export function Button({ variant = 'plain', size = 'md', className = '', type = 'button', ...rest }: Props) {

@@ -3,11 +3,20 @@
  * dynamic import, so the SDK is only downloaded when a project is configured.
  */
 import { initializeApp } from 'firebase/app'
-import { getAuth, GoogleAuthProvider, onAuthStateChanged, signInWithPopup, signOut as fbSignOut } from 'firebase/auth'
+import {
+  deleteUser,
+  getAuth,
+  GoogleAuthProvider,
+  onAuthStateChanged,
+  reauthenticateWithPopup,
+  signInWithPopup,
+  signOut as fbSignOut,
+} from 'firebase/auth'
 import {
   collection,
   deleteDoc,
   doc,
+  getDocsFromServer,
   initializeFirestore,
   onSnapshot,
   persistentLocalCache,
@@ -50,6 +59,45 @@ export async function signIn(): Promise<void> {
 
 export async function signOut(): Promise<void> {
   await fbSignOut(auth)
+}
+
+/**
+ * Asks the signed-in user to sign in with Google again. Firebase only deletes
+ * an account after a fresh sign-in, and it doubles as the user's confirmation.
+ * Throws when the popup is closed or another Google account is chosen.
+ * Returns what `deleteAccount` needs to withdraw the app's access at Google.
+ */
+export async function confirmIdentity(): Promise<{ googleToken?: string }> {
+  if (!auth.currentUser) throw new Error('Not signed in')
+  const result = await reauthenticateWithPopup(auth.currentUser, new GoogleAuthProvider())
+  const googleToken = GoogleAuthProvider.credentialFromResult(result)?.accessToken
+  return googleToken ? { googleToken } : {}
+}
+
+/**
+ * Deletes everything saved for the signed-in user and then the account
+ * itself. Call `confirmIdentity` first. The data is read from the server, so
+ * this fails without a connection instead of deleting only part of it.
+ */
+export async function deleteAccount(confirmed: { googleToken?: string }): Promise<void> {
+  const user = auth.currentUser
+  if (!user) throw new Error('Not signed in')
+  const [players, sessions] = await Promise.all([
+    getDocsFromServer(collection(db, 'users', user.uid, 'players')),
+    getDocsFromServer(query(collection(db, 'sessions'), where('ownerUid', '==', user.uid))),
+  ])
+  await Promise.all([...players.docs, ...sessions.docs].map((d) => deleteDoc(d.ref)))
+  await deleteDoc(doc(db, 'users', user.uid))
+  await deleteUser(user)
+  if (confirmed.googleToken) {
+    // Also remove the app from the user's Google account. Best effort: the account is already gone.
+    await fetch('https://oauth2.googleapis.com/revoke', {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: `token=${encodeURIComponent(confirmed.googleToken)}`,
+    }).catch(() => {})
+  }
 }
 
 /**

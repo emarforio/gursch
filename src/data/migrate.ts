@@ -19,6 +19,14 @@ export function markImport(uid: string, answer: 'done' | 'skipped') {
   }
 }
 
+export function forgetImport(uid: string) {
+  try {
+    localStorage.removeItem(key(uid))
+  } catch {
+    // Not essential.
+  }
+}
+
 /** What copying would add: local records whose id is not in the account yet. */
 export function pendingImport(local: Data, account: Data) {
   const playerIds = new Set(account.players.map((p) => p.id))

@@ -194,6 +194,22 @@ export const sv: Dictionary = {
     bannerText: (p, s) =>
       `Den här enheten har ${playersAndSessions(p, s)} som sparades innan du loggade in. Du kan också göra det senare under Inställningar.`,
     notNow: 'Inte nu',
+    deleteTitle: 'Ta bort kontot',
+    deleteNote:
+      'Tar bort ditt konto och allt som är sparat i det, och delningslänkar slutar fungera. Det går inte att ångra. Du får logga in med Google en gång till för att bekräfta.',
+    keepCopy: 'Behåll en kopia av mina spelare och sessioner på den här enheten',
+    delete: 'Ta bort mitt konto',
+    deleteConfirm: 'Ja, ta bort mitt konto',
+    deleted: 'Ditt konto har tagits bort.',
+    deletedKept: (p, s) => `Ditt konto har tagits bort. ${playersAndSessions(p, s)} från kontot finns nu sparade på den här enheten.`,
+    deleteWrongAccount: 'Det var ett annat Google-konto. Inget togs bort.',
+    deleteFailed: 'Kontot gick inte att ta bort. Kontrollera anslutningen och försök igen.',
+    clearTitle: 'Ta bort data på den här enheten',
+    clearNote: (p, s) =>
+      `Tar bort ${playersAndSessions(p, s)} som är sparade på den här enheten. Det går inte att ångra, så exportera en säkerhetskopia först om du vill behålla något.`,
+    clear: 'Ta bort allt på den här enheten',
+    clearConfirm: 'Ja, ta bort allt',
+    cleared: 'Allt som var sparat på den här enheten har tagits bort.',
   },
 
   screen: {

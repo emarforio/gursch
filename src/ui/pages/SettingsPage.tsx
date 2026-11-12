@@ -2,7 +2,7 @@ import { useRef, useState } from 'react'
 import { backupFileName, exportBackup, parseBackup } from '../../data/backup'
 import { firebaseConfigured } from '../../data/config'
 import { importLocal, markImport, pendingImport } from '../../data/migrate'
-import { localRepo, signIn, signOut, snapshotOf, SYNC_UNREACHABLE, useStore } from '../../data/store'
+import { deleteAccount, localRepo, signIn, signOut, snapshotOf, SYNC_UNREACHABLE, useStore } from '../../data/store'
 import { setLanguageChoice, useLanguage, useT } from '../../i18n'
 import type { LanguageChoice } from '../../i18n'
 import { Avatar } from '../components/Avatar'
@@ -123,6 +123,8 @@ export function SettingsPage() {
       <LanguagePicker />
       {wakeLockSupported && <ScreenSetting />}
       <Backup />
+      {firebaseConfigured && <DeleteAccount />}
+      {!user && <ClearDevice />}
     </section>
   )
 }
@@ -162,6 +164,109 @@ function ScreenSetting() {
           <span className="block text-sm text-muted">{t.screen.note}</span>
         </span>
       </label>
+    </>
+  )
+}
+
+/** Deletes the account and its data, optionally keeping a copy on this device. Shows the outcome after sign-out too. */
+function DeleteAccount() {
+  const t = useT()
+  const user = useStore((s) => s.user)
+  const [keepCopy, setKeepCopy] = useState(true)
+  const [asking, setAsking] = useState(false)
+  const [busy, setBusy] = useState(false)
+  const [result, setResult] = useState<BackupResult | null>(null)
+
+  async function run() {
+    setAsking(false)
+    setBusy(true)
+    setResult(null)
+    try {
+      const kept = await deleteAccount(keepCopy)
+      const text = kept.players + kept.sessions > 0 ? t.account.deletedKept(kept.players, kept.sessions) : t.account.deleted
+      setResult({ tone: 'good', text })
+    } catch (e) {
+      const code = (e as { code?: string }).code
+      if (code === 'auth/user-mismatch') setResult({ tone: 'bad', text: t.account.deleteWrongAccount })
+      else if (code !== 'auth/popup-closed-by-user' && code !== 'auth/cancelled-popup-request') {
+        setResult({ tone: 'bad', text: t.account.deleteFailed })
+      }
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const outcome = result && (
+    <p className={`mt-3 ${result.tone === 'good' ? 'text-good' : 'text-bad'}`} role={result.tone === 'good' ? 'status' : 'alert'}>
+      {result.text}
+    </p>
+  )
+  if (!user) return outcome
+
+  return (
+    <>
+      <h2 className="mt-8 mb-2 font-semibold">{t.account.deleteTitle}</h2>
+      <p className="text-muted">{t.account.deleteNote}</p>
+      <label className="mt-3 flex items-center gap-3">
+        <input type="checkbox" className="h-5 w-5 accent-(--accent)" checked={keepCopy} onChange={(e) => setKeepCopy(e.target.checked)} />
+        <span>{t.account.keepCopy}</span>
+      </label>
+      {asking ? (
+        <div className="mt-3 flex flex-wrap gap-2">
+          <Button variant="destructive" onClick={run}>
+            {t.account.deleteConfirm}
+          </Button>
+          <Button onClick={() => setAsking(false)}>{t.common.cancel}</Button>
+        </div>
+      ) : (
+        <Button variant="destructive" className="mt-3" disabled={busy} onClick={() => setAsking(true)}>
+          {t.account.delete}
+        </Button>
+      )}
+      {outcome}
+    </>
+  )
+}
+
+/** Signed out: deletes the players and sessions saved on this device. Language and screen choices stay. */
+function ClearDevice() {
+  const t = useT()
+  const players = useStore((s) => s.players.length)
+  const sessions = useStore((s) => s.sessions.length)
+  const [asking, setAsking] = useState(false)
+  const [cleared, setCleared] = useState(false)
+
+  if (players + sessions === 0) {
+    return cleared ? (
+      <p className="mt-8 text-good" role="status">
+        {t.account.cleared}
+      </p>
+    ) : null
+  }
+
+  return (
+    <>
+      <h2 className="mt-8 mb-2 font-semibold">{t.account.clearTitle}</h2>
+      <p className="text-muted">{t.account.clearNote(players, sessions)}</p>
+      {asking ? (
+        <div className="mt-3 flex flex-wrap gap-2">
+          <Button
+            variant="destructive"
+            onClick={() => {
+              localRepo.clear()
+              setAsking(false)
+              setCleared(true)
+            }}
+          >
+            {t.account.clearConfirm}
+          </Button>
+          <Button onClick={() => setAsking(false)}>{t.common.cancel}</Button>
+        </div>
+      ) : (
+        <Button variant="destructive" className="mt-3" onClick={() => setAsking(true)}>
+          {t.account.clear}
+        </Button>
+      )}
     </>
   )
 }

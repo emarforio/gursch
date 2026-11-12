@@ -37,7 +37,12 @@ function upsert<T extends { id: string }>(list: T[], item: T): T[] {
   return list.some((x) => x.id === item.id) ? list.map((x) => (x.id === item.id ? item : x)) : [...list, item]
 }
 
-export function createLocalRepo(): Repository {
+export type LocalRepository = Repository & {
+  /** Deletes every player, session and setting saved on this device. */
+  clear(): void
+}
+
+export function createLocalRepo(): LocalRepository {
   let data = load()
   const listeners = new Set<(d: Data) => void>()
   const emit = () => listeners.forEach((cb) => cb(data))
@@ -67,5 +72,14 @@ export function createLocalRepo(): Repository {
     saveSession: (s) => set('sessions', upsert(data.sessions, s)),
     deleteSession: (id) => set('sessions', data.sessions.filter((s) => s.id !== id)),
     saveSettings: (s) => set('settings', s),
+    clear() {
+      try {
+        for (const key of Object.values(KEYS)) localStorage.removeItem(key)
+      } catch {
+        // Storage is blocked, so nothing was saved in the first place.
+      }
+      data = load()
+      emit()
+    },
   }
 }

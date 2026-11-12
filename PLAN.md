@@ -183,7 +183,7 @@ One versioned key per collection: `gursch.v1.players`, `gursch.v1.sessions`, `gu
 7. **Players** — add, rename, set picture. Removing a player who has played turns them into a guest; one who never played is deleted. Guests can be added on the fly when starting a session and promoted to regular players later.
 8. **Rules** — renders `RULES.md`.
 9. **Shared view** — `/s/{sessionId}`, read-only live view, no login needed.
-10. **Settings** (`/settings`) — sign in or out, language, keep the screen on, export and import data as JSON. Called Settings rather than Account because most of it applies without an account. The default config is not edited here: a new session starts from the settings of the last one.
+10. **Settings** (`/settings`) — sign in or out, language, keep the screen on, export and import data as JSON, delete the account or the data on the device. Called Settings rather than Account because most of it applies without an account. The default config is not edited here: a new session starts from the settings of the last one.
 
 ### Round entry
 
@@ -252,6 +252,8 @@ Status: 1 to 7 are done and confirmed by Erik against the real Firebase project.
 
 ### After the milestones (requested by Erik on 2026-11-12)
 
+- **Delete account:** a red button on the Settings page, with a second step to confirm. The user signs in with Google once more (Firebase requires a fresh sign-in, and it confirms the choice), then all their documents are deleted (`users/{uid}`, its players, their sessions), then the Firebase user, and last the app's access is withdrawn at Google (best effort). A checkbox, on by default, first copies the account's players and sessions to this device, merged by id without overwriting. Not yet tried against the real project.
+- **Delete device data:** signed out, the Settings page has the same kind of red two-step button to delete the players, sessions and settings in `localStorage`. The language and screen choices stay.
 - **Bottom actions:** `BottomBar` pins the main action of Home, New session and Change players to the bottom of the screen. A bottom tab bar instead of the menu button was considered and left out; it would take height from the score entry.
 
 ### Milestone 9: Swedish translation
