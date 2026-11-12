@@ -73,6 +73,8 @@ export const en = {
     deal: (n: number) => `Deal ${cards(n)} each`,
     ruleSays: (n: number) => `(rule says ${n})`,
     cardsToDeal: 'Cards to deal',
+    saved: (n: number) => `Round ${n} saved.`,
+    undo: 'Undo',
     players: 'Players',
     details: 'Details',
     hints: {

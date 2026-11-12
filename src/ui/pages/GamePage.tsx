@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { newId, useStore } from '../../data/store'
 import { dealHint, maxDeal } from '../../domain/deal'
@@ -20,6 +21,10 @@ export function GamePage({ session }: { session: Session }) {
   const cards = currentDeal(session)
   const suggested = suggestedDeal(session)
   const hint = dealHint(cards)
+  // The session as it was before the round just saved here, so that round can be undone.
+  const [beforeSave, setBeforeSave] = useState<Session | null>(null)
+  const last = session.rounds.at(-1)
+  const canUndo = beforeSave !== null && last !== undefined && beforeSave.rounds.length === session.rounds.length - 1
 
   function save(result: RoundResult) {
     const round: Round = {
@@ -32,6 +37,19 @@ export function GamePage({ session }: { session: Session }) {
     }
     const { dealOverride: _used, ...rest } = session
     repo.saveSession({ ...rest, rounds: [...session.rounds, round] })
+    setBeforeSave(session)
+  }
+
+  function undo() {
+    if (!canUndo) return
+    // Takes the round away again and brings back a manual deal that was set for it.
+    const { dealOverride: _now, ...rest } = session
+    repo.saveSession({
+      ...rest,
+      rounds: session.rounds.slice(0, -1),
+      ...(beforeSave.dealOverride === undefined ? {} : { dealOverride: beforeSave.dealOverride }),
+    })
+    setBeforeSave(null)
   }
 
   function setDeal(v: number) {
@@ -65,6 +83,15 @@ export function GamePage({ session }: { session: Session }) {
           onSave={save}
         />
       </div>
+
+      {canUndo && (
+        <p className="mt-3 flex items-center justify-between gap-3 text-sm text-muted" role="status">
+          {t.game.saved(session.rounds.length)}
+          <button type="button" onClick={undo} className="-my-2 rounded-lg px-3 py-2 font-medium text-text underline">
+            {t.game.undo}
+          </button>
+        </p>
+      )}
 
       <div className="mt-8 mb-2 flex items-center gap-2">
         <h2 className="min-w-0 flex-1 truncate font-semibold">{session.name}</h2>

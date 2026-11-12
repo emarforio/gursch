@@ -195,7 +195,7 @@ One versioned key per collection: `gursch.v1.players`, `gursch.v1.sessions`, `gu
 - When all players have a value, a summary appears: winner, loser, amount owed, suggested next deal.
 - If there is a tie for lowest or highest, the summary first shows "Who led the last trick?" with one button per player.
 - "Save round" stores it and resets the screen for the next round. A normal round is one tap per player plus one.
-- Undo is available for the last saved round.
+- Undo is available for the last saved round: after saving, a line under the entry offers it until the next round is saved or the page is left.
 
 ## Visual design
 

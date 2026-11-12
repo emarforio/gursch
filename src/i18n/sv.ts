@@ -66,6 +66,8 @@ export const sv: Dictionary = {
     deal: (n) => `Dela ut ${cards(n)} var`,
     ruleSays: (n) => `(regeln säger ${n})`,
     cardsToDeal: 'Kort att dela ut',
+    saved: (n) => `Runda ${n} sparad.`,
+    undo: 'Ångra',
     players: 'Spelare',
     details: 'Detaljer',
     hints: {
