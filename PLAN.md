@@ -254,6 +254,7 @@ Status: 1 to 7 are done and confirmed by Erik against the real Firebase project.
 
 - **Delete account:** a red button on the Settings page, with a second step to confirm. The user signs in with Google once more (Firebase requires a fresh sign-in, and it confirms the choice), then all their documents are deleted (`users/{uid}`, its players, their sessions), then the Firebase user, and last the app's access is withdrawn at Google (best effort). A checkbox, on by default, first copies the account's players and sessions to this device, merged by id without overwriting. Erik tried it against the real project on 2026-11-12 and it worked.
 - **Delete device data:** signed out, the Settings page has the same kind of red two-step button to delete the players, sessions and settings in `localStorage`. The language and screen choices stay.
+- **Updates:** the installed app updates itself. `src/pwa.ts` registers the service worker, checks for a new version on launch and each time the app comes back into view, and reloads the page once the new version has been installed. Scores entered but not yet saved are lost in that reload, which Erik accepted since updates are rare.
 - **Bottom actions:** `BottomBar` pins the main action of Home, New session and Change players to the bottom of the screen. A bottom tab bar instead of the menu button was considered and left out; it would take height from the score entry.
 
 ### Milestone 9: Swedish translation

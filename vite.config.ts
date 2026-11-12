@@ -8,8 +8,10 @@ export default defineConfig({
     react(),
     tailwindcss(),
     VitePWA({
-      // New versions install in the background and take over on the next visit.
+      // A new version takes over as soon as it is installed, and src/pwa.ts then reloads the page.
       registerType: 'autoUpdate',
+      // src/pwa.ts registers the service worker itself.
+      injectRegister: false,
       includeAssets: ['favicon.svg', 'icon.svg', 'apple-touch-icon.png'],
       manifest: {
         name: 'Gursch',
@@ -27,6 +29,10 @@ export default defineConfig({
         ],
       },
       workbox: {
+        // A new version takes over at once instead of waiting for every tab to close. The plugin only sets
+        // these itself when it also injects the registration, which src/pwa.ts does instead.
+        skipWaiting: true,
+        clientsClaim: true,
         // Precache the whole build, including the lazily loaded Firebase chunk, so the app opens offline.
         globPatterns: ['**/*.{js,css,html,svg,png}'],
         navigateFallback: '/index.html',
