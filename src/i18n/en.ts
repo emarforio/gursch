@@ -202,6 +202,12 @@ export const en = {
     notNow: 'Not now',
   },
 
+  screen: {
+    title: 'Screen',
+    keepAwake: 'Keep the screen on during a game',
+    note: 'The screen does not dim or lock while the score entry is open. The choice is saved on this device only.',
+  },
+
   language: {
     title: 'Language',
     automatic: 'Automatic',

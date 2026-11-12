@@ -12,7 +12,7 @@ Read `RULES.md` before working on anything. It is the source of truth for game r
 - No backend server of our own. Firebase provides auth, database and static hosting.
 - Score entry uses on-screen buttons only. The keyboard must never open during a round.
 - Score entry takes as few taps as possible: one tap per player plus one to save.
-- It is used on a phone at a pub table: a page's main action sits at the bottom of the screen.
+- It is used on a phone at a pub table: a page's main action sits at the bottom of the screen, and the screen stays on during a game.
 - The UI is available in English and Swedish. It follows the device language by default and can be changed. The house terms doffel/dofflar, troffel/trofflar, foffel/fofflar are used in both.
 
 ## Stack
@@ -183,7 +183,7 @@ One versioned key per collection: `gursch.v1.players`, `gursch.v1.sessions`, `gu
 7. **Players** — add, rename, set picture. Removing a player who has played turns them into a guest; one who never played is deleted. Guests can be added on the fly when starting a session and promoted to regular players later.
 8. **Rules** — renders `RULES.md`.
 9. **Shared view** — `/s/{sessionId}`, read-only live view, no login needed.
-10. **Settings** (`/settings`) — sign in or out, language, export and import data as JSON. Called Settings rather than Account because most of it applies without an account. The default config is not edited here: a new session starts from the settings of the last one.
+10. **Settings** (`/settings`) — sign in or out, language, keep the screen on, export and import data as JSON. Called Settings rather than Account because most of it applies without an account. The default config is not edited here: a new session starts from the settings of the last one.
 
 ### Round entry
 
@@ -196,6 +196,7 @@ One versioned key per collection: `gursch.v1.players`, `gursch.v1.sessions`, `gu
 - If there is a tie for lowest or highest, the summary first shows "Who led the last trick?" with one button per player.
 - "Save round" stores it and resets the screen for the next round. A normal round is one tap per player plus one.
 - Undo is available for the last saved round: after saving, a line under the entry offers it until the next round is saved or the page is left.
+- The screen is kept on while this screen is open (Screen Wake Lock API, `src/ui/wakeLock.ts`). It can be turned off on the Settings page; the choice is saved per device under `gursch.v1.keepAwake`.
 
 ## Visual design
 

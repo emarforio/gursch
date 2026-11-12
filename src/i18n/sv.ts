@@ -196,6 +196,12 @@ export const sv: Dictionary = {
     notNow: 'Inte nu',
   },
 
+  screen: {
+    title: 'Skärm',
+    keepAwake: 'Håll skärmen tänd under spelet',
+    note: 'Skärmen dimmas eller låses inte så länge poänginmatningen är öppen. Valet sparas bara på den här enheten.',
+  },
+
   language: {
     title: 'Språk',
     automatic: 'Automatiskt',

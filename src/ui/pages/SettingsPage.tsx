@@ -8,6 +8,7 @@ import type { LanguageChoice } from '../../i18n'
 import { Avatar } from '../components/Avatar'
 import { Button } from '../components/Button'
 import { Segmented } from '../components/Controls'
+import { setKeepAwake, useKeepAwake, wakeLockSupported } from '../wakeLock'
 
 export function useImport() {
   const user = useStore((s) => s.user)
@@ -120,6 +121,7 @@ export function SettingsPage() {
       )}
 
       <LanguagePicker />
+      {wakeLockSupported && <ScreenSetting />}
       <Backup />
     </section>
   )
@@ -143,6 +145,23 @@ function LanguagePicker() {
         ]}
       />
       <p className="mt-2 text-sm text-muted">{t.language.note}</p>
+    </>
+  )
+}
+
+function ScreenSetting() {
+  const t = useT()
+  const on = useKeepAwake((s) => s.on)
+  return (
+    <>
+      <h2 className="mt-8 mb-2 font-semibold">{t.screen.title}</h2>
+      <label className="flex items-center gap-3">
+        <input type="checkbox" className="h-5 w-5 accent-(--accent)" checked={on} onChange={(e) => setKeepAwake(e.target.checked)} />
+        <span>
+          {t.screen.keepAwake}
+          <span className="block text-sm text-muted">{t.screen.note}</span>
+        </span>
+      </label>
     </>
   )
 }

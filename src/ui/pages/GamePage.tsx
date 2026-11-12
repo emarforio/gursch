@@ -10,6 +10,7 @@ import { RoundEntry } from '../components/RoundEntry'
 import type { RoundResult } from '../components/RoundEntry'
 import { ScoreTable } from '../components/ScoreTable'
 import { peopleOf } from '../format'
+import { useWakeLock } from '../wakeLock'
 
 export function GamePage({ session }: { session: Session }) {
   const players = useStore((s) => s.players)
@@ -25,6 +26,8 @@ export function GamePage({ session }: { session: Session }) {
   const [beforeSave, setBeforeSave] = useState<Session | null>(null)
   const last = session.rounds.at(-1)
   const canUndo = beforeSave !== null && last !== undefined && beforeSave.rounds.length === session.rounds.length - 1
+
+  useWakeLock(true)
 
   function save(result: RoundResult) {
     const round: Round = {
