@@ -66,10 +66,3 @@ export const DEFAULT_CONFIG: SessionConfig = {
   dealRule: { mode: 'difference', capBelowMax: 1 },
   formula: DEFAULT_FORMULA,
 }
-
-export const FINISH_NAMES: Record<Finish, string> = {
-  1: 'Single',
-  2: 'Doffel',
-  3: 'Troffel',
-  4: 'Foffel',
-}

@@ -1,10 +1,15 @@
 import Markdown from 'react-markdown'
-import rules from '../../../RULES.md?raw'
+import en from '../../../RULES.md?raw'
+import sv from '../../../RULES.sv.md?raw'
+import { useLanguage } from '../../i18n'
+
+const rules = { en, sv }
 
 export function RulesPage() {
+  const language = useLanguage((s) => s.language)
   return (
     <article className="rules">
-      <Markdown>{rules}</Markdown>
+      <Markdown>{rules[language]}</Markdown>
     </article>
   )
 }

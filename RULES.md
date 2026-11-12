@@ -1,6 +1,7 @@
 # Gursch — house rules
 
 Gursch (also Gurch, Gurka) is a short trick-based card game. One round is a single deal. After each round every player gets a score, and one player wins and one player loses the round. You can play any number of rounds in a session.
+
 ## Basics
 
 - **Deck:** a standard 52-card deck, no jokers.

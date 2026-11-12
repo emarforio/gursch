@@ -2,10 +2,10 @@ import { useRef, useState } from 'react'
 import { toAvatar } from '../../data/image'
 import { newId, useStore } from '../../data/store'
 import type { Player } from '../../domain/types'
+import { useT } from '../../i18n'
 import { Avatar } from '../components/Avatar'
 import { Button } from '../components/Button'
 import { MAX_NAME } from '../components/SeatingEditor'
-
 
 export function PlayersPage() {
   const players = useStore((s) => s.players)
@@ -13,6 +13,7 @@ export function PlayersPage() {
   const repo = useStore((s) => s.repo)
   const [name, setName] = useState('')
   const [editingId, setEditingId] = useState<string | null>(null)
+  const t = useT()
 
   const regulars = players.filter((p) => !p.guest)
   const guests = players.filter((p) => p.guest)
@@ -38,30 +39,30 @@ export function PlayersPage() {
 
   return (
     <section>
-      <h1 className="text-2xl font-bold">Players</h1>
+      <h1 className="text-2xl font-bold">{t.players.title}</h1>
 
       <form onSubmit={add} className="mt-4 flex gap-2">
         <input
           value={name}
           onChange={(e) => setName(e.target.value)}
           maxLength={MAX_NAME}
-          placeholder="Short name"
-          aria-label="New player name"
+          placeholder={t.players.shortName}
+          aria-label={t.players.newPlayerName}
           className="h-11 min-w-0 flex-1 rounded-lg bg-surface px-3 outline-none ring-1 ring-line focus:ring-2 focus:ring-accent"
         />
         <Button type="submit" variant="primary" disabled={!trimmed}>
-          Add
+          {t.players.add}
         </Button>
       </form>
 
-      {regulars.length === 0 && <p className="mt-6 text-muted">No players yet. Add the people you usually play with.</p>}
+      {regulars.length === 0 && <p className="mt-6 text-muted">{t.players.none}</p>}
       {regulars.length > 0 && <ul className="mt-4 divide-y divide-line rounded-xl bg-surface">{regulars.map(row)}</ul>}
 
       {guests.length > 0 && (
         <>
-          <h2 className="mt-8 font-semibold">Guests</h2>
+          <h2 className="mt-8 font-semibold">{t.players.guests}</h2>
           <p className="mt-1 text-sm text-muted">
-            Temporary players. They are kept for history and stats but are not suggested for new sessions.
+            {t.players.guestsNote}
           </p>
           <ul className="mt-3 divide-y divide-line rounded-xl bg-surface">{guests.map(row)}</ul>
         </>
@@ -76,6 +77,7 @@ function PlayerRow(props: { player: Player; editing: boolean; onToggle: () => vo
   const [draft, setDraft] = useState(player.name)
   const [error, setError] = useState<string | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
+  const t = useT()
   const clean = draft.trim()
 
   async function pickPicture(e: React.ChangeEvent<HTMLInputElement>) {
@@ -86,7 +88,7 @@ function PlayerRow(props: { player: Player; editing: boolean; onToggle: () => vo
       repo.savePlayer({ ...player, avatar: await toAvatar(file) })
       setError(null)
     } catch {
-      setError('That picture could not be read.')
+      setError(t.players.pictureError)
     }
   }
 
@@ -100,7 +102,7 @@ function PlayerRow(props: { player: Player; editing: boolean; onToggle: () => vo
       <button onClick={onToggle} className="flex w-full items-center gap-3 text-left" aria-expanded={editing}>
         <Avatar name={player.name} avatar={player.avatar} />
         <span className="flex-1 font-medium">{player.name}</span>
-        <span className="text-sm text-muted">{editing ? 'Done' : 'Edit'}</span>
+        <span className="text-sm text-muted">{editing ? t.common.done : t.players.edit}</span>
       </button>
 
       {editing && (
@@ -110,38 +112,38 @@ function PlayerRow(props: { player: Player; editing: boolean; onToggle: () => vo
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
               maxLength={MAX_NAME}
-              aria-label="Name"
+              aria-label={t.players.name}
               className="h-11 min-w-0 flex-1 rounded-lg bg-bg px-3 outline-none ring-1 ring-line focus:ring-2 focus:ring-accent"
             />
             <Button onClick={() => repo.savePlayer({ ...player, name: clean })} disabled={!clean || clean === player.name}>
-              Rename
+              {t.players.rename}
             </Button>
           </div>
 
           <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={pickPicture} />
           <div className="flex flex-wrap gap-2">
             <Button size="sm" onClick={() => fileRef.current?.click()}>
-              {player.avatar ? 'Change picture' : 'Add picture'}
+              {player.avatar ? t.players.changePicture : t.players.addPicture}
             </Button>
             {player.avatar && (
               <Button size="sm" onClick={removePicture}>
-                Remove picture
+                {t.players.removePicture}
               </Button>
             )}
             {player.guest ? (
               <Button size="sm" onClick={() => repo.savePlayer({ ...player, guest: false })}>
-                Make regular player
+                {t.players.makeRegular}
               </Button>
             ) : (
               hasPlayed && (
                 <Button size="sm" onClick={() => repo.savePlayer({ ...player, guest: true })}>
-                  Make guest
+                  {t.players.makeGuest}
                 </Button>
               )
             )}
             {!hasPlayed && (
               <Button size="sm" variant="danger" onClick={() => repo.deletePlayer(player.id)}>
-                Delete
+                {t.common.delete}
               </Button>
             )}
           </div>

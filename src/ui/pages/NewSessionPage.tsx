@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { newId, useStore } from '../../data/store'
 import { maxDeal } from '../../domain/deal'
 import type { Player, Session, SessionPlayer } from '../../domain/types'
+import { useT } from '../../i18n'
 import { Button } from '../components/Button'
 import { ConfigEditor, isConfigValid } from '../components/ConfigEditor'
 import { SeatingEditor } from '../components/SeatingEditor'
@@ -17,6 +18,7 @@ export function NewSessionPage() {
   const settings = useStore((s) => s.settings)
   const repo = useStore((s) => s.repo)
   const navigate = useNavigate()
+  const t = useT()
   const [seats, setSeats] = useState<string[]>([])
   const [config, setConfig] = useState(settings.defaultConfig)
 
@@ -40,21 +42,21 @@ export function NewSessionPage() {
 
   return (
     <section>
-      <h1 className="text-2xl font-bold">New session</h1>
+      <h1 className="text-2xl font-bold">{t.newSession.title}</h1>
 
-      <h2 className="mt-5 font-semibold">Seating</h2>
-      <p className="mt-1 mb-3 text-sm text-muted">Add players in clockwise order. Scores are entered in this order.</p>
+      <h2 className="mt-5 font-semibold">{t.newSession.seating}</h2>
+      <p className="mt-1 mb-3 text-sm text-muted">{t.newSession.seatingNote}</p>
       <SeatingEditor seats={seats} onChange={setSeats} />
 
       <details className="mt-6 rounded-xl bg-surface">
-        <summary className="cursor-pointer px-3 py-3 font-semibold">Deal and money settings</summary>
+        <summary className="cursor-pointer px-3 py-3 font-semibold">{t.common.dealAndMoney}</summary>
         <div className="border-t border-line px-3 py-4">
           <ConfigEditor config={config} onChange={setConfig} playerCount={seats.length} showStartCards />
         </div>
       </details>
 
       <Button variant="primary" className="mt-6 w-full" disabled={seats.length < 2 || !isConfigValid(config)} onClick={start}>
-        {seats.length < 2 ? 'Add at least two players' : `Start with ${seats.length} players`}
+        {seats.length < 2 ? t.newSession.needTwo : t.newSession.start(seats.length)}
       </Button>
     </section>
   )

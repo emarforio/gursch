@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { cardLabel } from '../../domain/scoring'
-import { fmtSigned } from '../format'
+import { useT } from '../../i18n'
+import { fmtMoney, fmtPercent, fmtSigned } from '../format'
 
 const SERIES_COUNT = 8
 
@@ -38,6 +38,7 @@ export type Series = { id: string; name: string; color: string; values: number[]
 
 /** Running balance per player. values[0] is the starting point before round 1. */
 export function LineChart({ series }: { series: Series[] }) {
+  const t = useT()
   const [ref, width] = useWidth()
   const [hover, setHover] = useState<number | null>(null)
   const count = Math.max(...series.map((s) => s.values.length), 1)
@@ -48,9 +49,9 @@ export function LineChart({ series }: { series: Series[] }) {
   const iw = Math.max(width - m.l - m.r, 10)
   const ih = H - m.t - m.b
   const all = series.flatMap((s) => s.values)
-  const ticks = niceTicks(Math.min(0, ...all), Math.max(0, ...all))
-  const lo = ticks[0]!
-  const hi = ticks[ticks.length - 1]!
+  const yTicks = niceTicks(Math.min(0, ...all), Math.max(0, ...all))
+  const lo = yTicks[0]!
+  const hi = yTicks[yTicks.length - 1]!
   const x = (i: number) => m.l + (last === 0 ? 0 : (i / last) * iw)
   const y = (v: number) => m.t + (1 - (v - lo) / (hi - lo || 1)) * ih
   const xStep = Math.max(1, Math.ceil(last / 6))
@@ -78,24 +79,24 @@ export function LineChart({ series }: { series: Series[] }) {
             width={width}
             height={H}
             role="img"
-            aria-label="Running balance per player after each round"
+            aria-label={t.charts.balanceLabel}
             onPointerMove={onMove}
             onPointerDown={onMove}
             onPointerLeave={() => setHover(null)}
             style={{ touchAction: 'pan-y', display: 'block' }}
           >
-            {ticks.map((t) => (
-              <g key={t}>
+            {yTicks.map((v) => (
+              <g key={v}>
                 <line
                   x1={m.l}
                   x2={m.l + iw}
-                  y1={y(t)}
-                  y2={y(t)}
-                  stroke={t === 0 ? 'var(--muted)' : 'var(--line)'}
+                  y1={y(v)}
+                  y2={y(v)}
+                  stroke={v === 0 ? 'var(--muted)' : 'var(--line)'}
                   strokeWidth={1}
                 />
-                <text x={m.l - 6} y={y(t) + 4} textAnchor="end" fontSize={11} fill="var(--muted)">
-                  {t}
+                <text x={m.l - 6} y={y(v) + 4} textAnchor="end" fontSize={11} fill="var(--muted)">
+                  {fmtMoney(v)}
                 </text>
               </g>
             ))}
@@ -133,7 +134,7 @@ export function LineChart({ series }: { series: Series[] }) {
             className="pointer-events-none absolute top-1 z-10 rounded-lg bg-bg px-2.5 py-2 text-xs shadow-md ring-1 ring-line"
             style={x(hover) > width / 2 ? { right: width - x(hover) + 10 } : { left: x(hover) + 10 }}
           >
-            <div className="mb-1 text-muted">{hover === 0 ? 'Start' : `After round ${hover}`}</div>
+            <div className="mb-1 text-muted">{hover === 0 ? t.charts.start : t.charts.afterRound(hover)}</div>
             {hovered.map((s) => (
               <div key={s.id} className="flex items-center gap-2">
                 <span className="h-2 w-2 rounded-full" style={{ background: s.color }} />
@@ -162,6 +163,7 @@ const VALUES = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
 
 /** How often a player finished on each card. One series, so no legend. */
 export function CardBars({ counts, color }: { counts: Record<number, number>; color: string }) {
+  const t = useT()
   const [ref, width] = useWidth()
   const [picked, setPicked] = useState<number | null>(null)
   const total = VALUES.reduce((s, v) => s + (counts[v] ?? 0), 0)
@@ -172,20 +174,19 @@ export function CardBars({ counts, color }: { counts: Record<number, number>; co
   const band = width / VALUES.length
   const bw = Math.max(band - 2, 2)
 
-  const shown = picked ?? null
-  const readout =
-    shown === null
-      ? 'Tap a bar for the count.'
-      : `${cardLabel(shown)}: ${counts[shown] ?? 0} of ${total} rounds (${total ? Math.round(((counts[shown] ?? 0) / total) * 100) : 0}%)`
+  const describe = (v: number) => {
+    const c = counts[v] ?? 0
+    return t.charts.barCount(t.common.card(v), c, total, fmtPercent(c, total))
+  }
 
   return (
     <div>
       <p className="mb-1 text-sm text-muted" aria-live="polite">
-        {readout}
+        {picked === null ? t.charts.tapBar : describe(picked)}
       </p>
       <div ref={ref}>
         {width > 0 && (
-          <svg width={width} height={H} role="img" aria-label="Final cards, how often each value occurred" style={{ display: 'block' }}>
+          <svg width={width} height={H} role="img" aria-label={t.charts.cardsLabel} style={{ display: 'block' }}>
             <line x1={0} x2={width} y1={m.t + ih} y2={m.t + ih} stroke="var(--line)" />
             {VALUES.map((v, i) => {
               const c = counts[v] ?? 0
@@ -216,7 +217,7 @@ export function CardBars({ counts, color }: { counts: Record<number, number>; co
                     fontWeight={picked === v ? 700 : 400}
                     fill={picked === v ? 'var(--text)' : 'var(--muted)'}
                   >
-                    {cardLabel(v)}
+                    {t.common.card(v)}
                   </text>
                 </g>
               )

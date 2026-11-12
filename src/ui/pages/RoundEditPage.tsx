@@ -1,6 +1,7 @@
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useStore } from '../../data/store'
 import type { Round } from '../../domain/types'
+import { useT } from '../../i18n'
 import { Button } from '../components/Button'
 import { ConfirmButton } from '../components/Controls'
 import { RoundEntry } from '../components/RoundEntry'
@@ -13,6 +14,7 @@ export function RoundEditPage() {
   const navigate = useNavigate()
   const players = useStore((s) => s.players)
   const repo = useStore((s) => s.repo)
+  const t = useT()
   const session = useStore((s) => s.sessions.find((x) => x.id === id))
   const index = session?.rounds.findIndex((r) => r.id === roundId) ?? -1
   const round = session?.rounds[index]
@@ -20,9 +22,9 @@ export function RoundEditPage() {
   if (!session || !round) {
     return (
       <section>
-        <h1 className="text-2xl font-bold">Round not found</h1>
+        <h1 className="text-2xl font-bold">{t.roundEdit.notFound}</h1>
         <Link to="/" className="mt-3 inline-block text-accent underline">
-          Back
+          {t.common.back}
         </Link>
       </section>
     )
@@ -42,10 +44,9 @@ export function RoundEditPage() {
 
   return (
     <section>
-      <h1 className="text-xl font-bold">Change round {index + 1}</h1>
+      <h1 className="text-xl font-bold">{t.roundEdit.title(index + 1)}</h1>
       <p className="mt-1 mb-4 text-sm text-muted">
-        {session.name} · {round.cardsDealt} {round.cardsDealt === 1 ? 'card' : 'cards'} dealt. Tap a player to change their
-        score. The amount is worked out again with the formula this round used.
+        {t.roundEdit.note(session.name, round.cardsDealt)}
       </p>
       <RoundEntry
         seats={round.seats}
@@ -53,14 +54,14 @@ export function RoundEditPage() {
         formula={round.formula}
         cards={round.cardsDealt}
         initial={round}
-        saveLabel="Save changes"
+        saveLabel={t.roundEdit.save}
         onSave={save}
       />
       <div className="mt-6 flex flex-wrap gap-2">
         <Button size="sm" onClick={() => navigate(-1)}>
-          Cancel
+          {t.common.cancel}
         </Button>
-        <ConfirmButton label="Delete this round" onConfirm={remove} danger />
+        <ConfirmButton label={t.roundEdit.delete} onConfirm={remove} danger />
       </div>
     </section>
   )

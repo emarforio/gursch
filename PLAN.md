@@ -12,7 +12,7 @@ Read `RULES.md` before working on anything. It is the source of truth for game r
 - No backend server of our own. Firebase provides auth, database and static hosting.
 - Score entry uses on-screen buttons only. The keyboard must never open during a round.
 - Score entry takes as few taps as possible: one tap per player plus one to save.
-- The UI is available in English and Swedish (Swedish is planned, see milestone 9). It follows the device language by default and can be changed. The house terms doffel/dofflar, troffel/trofflar, foffel/fofflar are used in both.
+- The UI is available in English and Swedish. It follows the device language by default and can be changed. The house terms doffel/dofflar, troffel/trofflar, foffel/fofflar are used in both.
 
 ## Stack
 
@@ -46,8 +46,8 @@ src/
     localRepo.ts   localStorage implementation
     firestoreRepo.ts
     migrate.ts     copy local data into the account on first login
+  i18n/          en.ts and sv.ts dictionaries, language choice, useT()
   ui/            pages and components
-  content/       imports ../RULES.md as raw text
 ```
 
 Rules for the code:
@@ -136,6 +136,7 @@ Security rules:
 ### localStorage layout
 
 One versioned key per collection: `gursch.v1.players`, `gursch.v1.sessions`, `gursch.v1.settings`. Include a schema version and a migration hook from the start.
+
 ## Domain logic
 
 ### Winner, loser and ties
@@ -180,12 +181,12 @@ One versioned key per collection: `gursch.v1.players`, `gursch.v1.sessions`, `gu
 7. **Players** — add, rename, set picture. Removing a player who has played turns them into a guest; one who never played is deleted. Guests can be added on the fly when starting a session and promoted to regular players later.
 8. **Rules** — renders `RULES.md`.
 9. **Shared view** — `/s/{sessionId}`, read-only live view, no login needed.
-10. **Settings** — sign in or out, default config, export and import data as JSON.
+10. **Settings** — sign in or out, language, default config, export and import data as JSON.
 
 ### Round entry
 
 - Players are listed in seating order, with the first one active.
-- A grid of thirteen large buttons shows `2 3 4 5 6 7 8 9 10 J Q K A`. Tapping one sets the active player's card and moves to the next player.
+- A grid of thirteen large buttons shows `2 3 4 5 6 7 8 9 10 J Q K A` (`Kn D K E` in Swedish). Tapping one sets the active player's card and moves to the next player.
 - Tapping a player's row makes that player active again to correct a value.
 - A finish selector (single, doffel, troffel, foffel; single by default and visually quiet) handles the rare multi-card finish. It only offers sizes up to the number of cards dealt.
 - On a multi-card finish the card grid is replaced by an on-screen number pad built from buttons, and the user enters each player's sum followed by "Next". The system keyboard still never opens. Sums outside the valid range are rejected.
@@ -228,7 +229,7 @@ Only rounds a player took part in count towards their averages.
 
 Each milestone should end with a working, deployable app.
 
-Status: 1 to 7 are done and confirmed by Erik against the real Firebase project. From polish (8), PWA install and offline are done (`vite-plugin-pwa`, app icon in `public/icon.svg`, with PNG renders of it; `public/favicon.svg` is the same cards without the background). Still open: JSON export and import, accessibility pass, and the Swedish translation (9).
+Status: 1 to 7 are done and confirmed by Erik against the real Firebase project. 8 and 9 are built and checked in a headless browser at phone width in both languages, but not yet confirmed by Erik. The Swedish wording in `src/i18n/sv.ts` and `RULES.sv.md` in particular needs a read by a native speaker who plays the game.
 
 1. **Scaffold** — Vite, React, TypeScript, Tailwind, router, lint, Vitest, empty pages, Firebase Hosting config.
 2. **Domain core** — everything in `domain/` with unit tests, including the tie-break cases and formula parser errors.
@@ -246,11 +247,12 @@ Requested by Erik on 2026-11-11: some people will prefer Swedish over English on
 
 - **Default:** follow the device language. Use Swedish when the first entry in `navigator.languages` starts with `sv`, otherwise English.
 - **Changeable:** a language choice on the Account page (Automatic, English, Svenska). The choice is saved on the device in `localStorage` under `gursch.v1.language` and is not synced, so each device can differ. It must work signed out.
-- **Mechanism:** no i18n library. One typed dictionary per language in `src/i18n/` (`en.ts`, `sv.ts`), with `en.ts` defining the key type so a missing Swedish string is a type error. A small `useT()` hook returns the lookup function. Strings with numbers take parameters and handle plurals in code, as the English ones do today.
+- **Mechanism:** no i18n library. One typed dictionary per language in `src/i18n/` (`en.ts`, `sv.ts`), with `en.ts` defining the `Dictionary` type so a missing Swedish string is a type error. A small `useT()` hook returns the active dictionary, used as `t.home.newSession` or `t.common.rounds(3)`. Strings with numbers are functions and handle plurals in code.
 - **Scope:** every user-visible string, including button labels, empty states, error messages, `aria-label`s, chart labels and tooltips, the deal hints in `src/domain/deal.ts` and the formula error messages in `src/domain/formula.ts`. The domain layer should return message keys or codes, not English sentences, so it stays free of UI concerns.
 - **Rules page:** add `RULES.sv.md` as a full Swedish version of `RULES.md` and render the one matching the language. Keep the two in step when rules change.
-- **Not translated:** the formula variable names (`max_score`, `min_score`, `total`, `players`), stored data, and the house terms.
-- **Formatting:** dates and numbers use the chosen language's locale instead of the browser default (`fmtDate` in `src/ui/format.ts`). Session names are stored as text when a session is created and are not re-translated.
+- **Not translated:** the formula variable names (`max_score`, `min_score`, `total`, `players`), stored data, and the house terms. Stored scores are always the numbers 2–14.
+- **Cards:** shown as J, Q, K, A in English and Kn, D, K, E in Swedish (`t.common.card`).
+- **Formatting:** dates, numbers and percentages use the chosen language's locale instead of the browser default (`src/ui/format.ts`): `sv-SE` for Swedish, and the device's own English locale for English, falling back to `en-GB`. Session names are stored as text when a session is created and are not re-translated.
 - **Document:** set `<html lang>` to the active language. The web app manifest stays in English.
 - **Testing:** a unit test that both dictionaries have the same keys, and a browser walkthrough of the main flow in Swedish at phone width to catch labels that no longer fit, especially the score entry screen and the stats tiles.
 

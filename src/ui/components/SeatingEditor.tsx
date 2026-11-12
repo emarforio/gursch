@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { newId, useStore } from '../../data/store'
 import type { SessionPlayer } from '../../domain/types'
+import { useT } from '../../i18n'
 import { Avatar } from './Avatar'
 import { Button } from './Button'
 
@@ -19,6 +20,7 @@ export function SeatingEditor({ seats, onChange, extra = [] }: Props) {
   const players = useStore((s) => s.players)
   const repo = useStore((s) => s.repo)
   const [name, setName] = useState('')
+  const t = useT()
 
   const known = new Map<string, SessionPlayer & { guest?: boolean }>()
   for (const p of extra) known.set(p.id, p)
@@ -58,20 +60,20 @@ export function SeatingEditor({ seats, onChange, extra = [] }: Props) {
                 <Avatar name={p.name} avatar={p.avatar} size={32} />
                 <span className="min-w-0 flex-1 truncate font-medium">
                   {p.name}
-                  {p.guest && <span className="ml-2 text-sm font-normal text-muted">guest</span>}
+                  {p.guest && <span className="ml-2 text-sm font-normal text-muted">{t.seating.guestTag}</span>}
                 </span>
-                <button className={small} disabled={i === 0} onClick={() => move(i, -1)} aria-label={`Move ${p.name} up`}>
+                <button className={small} disabled={i === 0} onClick={() => move(i, -1)} aria-label={t.seating.moveUp(p.name)}>
                   ↑
                 </button>
                 <button
                   className={small}
                   disabled={i === seats.length - 1}
                   onClick={() => move(i, 1)}
-                  aria-label={`Move ${p.name} down`}
+                  aria-label={t.seating.moveDown(p.name)}
                 >
                   ↓
                 </button>
-                <button className={small} onClick={() => onChange(seats.filter((s) => s !== id))} aria-label={`Remove ${p.name}`}>
+                <button className={small} onClick={() => onChange(seats.filter((s) => s !== id))} aria-label={t.seating.remove(p.name)}>
                   ×
                 </button>
               </li>
@@ -101,18 +103,18 @@ export function SeatingEditor({ seats, onChange, extra = [] }: Props) {
           value={name}
           onChange={(e) => setName(e.target.value)}
           maxLength={MAX_NAME}
-          placeholder="Someone new"
-          aria-label="New player name"
+          placeholder={t.seating.someoneNew}
+          aria-label={t.seating.newPlayerName}
           className="h-11 min-w-0 flex-1 rounded-lg bg-surface px-3 outline-none ring-1 ring-line focus:ring-2 focus:ring-accent"
         />
         <Button disabled={!trimmed || full} onClick={() => addNew(true)}>
-          Guest
+          {t.seating.guest}
         </Button>
         <Button disabled={!trimmed || full} onClick={() => addNew(false)}>
-          Save
+          {t.seating.save}
         </Button>
       </div>
-      <p className="mt-1 text-sm text-muted">Guest adds them for now. Save also keeps them in your player list.</p>
+      <p className="mt-1 text-sm text-muted">{t.seating.help}</p>
     </div>
   )
 }

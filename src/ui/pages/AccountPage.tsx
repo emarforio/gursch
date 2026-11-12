@@ -1,9 +1,12 @@
 import { useState } from 'react'
 import { firebaseConfigured } from '../../data/config'
 import { importLocal, markImport, pendingImport } from '../../data/migrate'
-import { localRepo, signIn, signOut, snapshotOf, useStore } from '../../data/store'
+import { localRepo, signIn, signOut, snapshotOf, SYNC_UNREACHABLE, useStore } from '../../data/store'
+import { setLanguageChoice, useLanguage, useT } from '../../i18n'
+import type { LanguageChoice } from '../../i18n'
 import { Avatar } from '../components/Avatar'
 import { Button } from '../components/Button'
+import { Segmented } from '../components/Controls'
 
 export function useImport() {
   const user = useStore((s) => s.user)
@@ -28,95 +31,113 @@ export function useImport() {
   }
 }
 
-export function describeImport(players: number, sessions: number): string {
-  const parts = [
-    players > 0 && `${players} ${players === 1 ? 'player' : 'players'}`,
-    sessions > 0 && `${sessions} ${sessions === 1 ? 'session' : 'sessions'}`,
-  ].filter(Boolean)
-  return parts.join(' and ')
-}
-
 export function AccountPage() {
   const user = useStore((s) => s.user)
   const syncError = useStore((s) => s.syncError)
   const pending = useImport()
+  const t = useT()
   const [busy, setBusy] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [copied, setCopied] = useState<string | null>(null)
+  const [failed, setFailed] = useState(false)
+  const [copied, setCopied] = useState<{ players: number; sessions: number } | null>(null)
 
   async function run(action: () => Promise<void>) {
     setBusy(true)
-    setError(null)
+    setFailed(false)
     try {
       await action()
     } catch (e) {
       const code = (e as { code?: string }).code
-      if (code !== 'auth/popup-closed-by-user' && code !== 'auth/cancelled-popup-request') {
-        setError('That did not work. Check your connection and try again.')
-      }
+      if (code !== 'auth/popup-closed-by-user' && code !== 'auth/cancelled-popup-request') setFailed(true)
     } finally {
       setBusy(false)
     }
   }
 
+  const syncMessage = syncError === SYNC_UNREACHABLE ? t.account.unreachable : syncError
+
   return (
     <section>
-      <h1 className="text-2xl font-bold">Account</h1>
+      <h1 className="text-2xl font-bold">{t.account.title}</h1>
 
       {!firebaseConfigured ? (
-        <p className="mt-3 text-muted">
-          Sync is not set up in this build. Everything is saved on this device only, and the app works the same otherwise.
-        </p>
+        <p className="mt-3 text-muted">{t.account.notConfigured}</p>
       ) : user ? (
         <>
           <div className="mt-4 flex items-center gap-3 rounded-xl bg-surface p-3">
-            <Avatar name={user.name} avatar={user.photo} size={44} />
+            <Avatar name={user.name || t.account.signedIn} avatar={user.photo} size={44} />
             <div className="min-w-0 flex-1">
-              <div className="truncate font-semibold">{user.name}</div>
+              <div className="truncate font-semibold">{user.name || t.account.signedIn}</div>
               <div className="truncate text-sm text-muted">{user.email}</div>
             </div>
           </div>
-          <p className="mt-3 text-muted">
-            Your players and sessions are saved to this account and kept in sync on every device where you sign in.
-          </p>
-          {syncError && <p className="mt-3 text-bad">Sync problem: {syncError}</p>}
+          <p className="mt-3 text-muted">{t.account.synced}</p>
+          {syncMessage && (
+            <p className="mt-3 text-bad">
+              {t.account.syncProblem(syncMessage)}
+            </p>
+          )}
 
           {pending && pending.players + pending.sessions > 0 && (
             <div className="mt-5 rounded-xl bg-surface p-3">
-              <p>
-                This device has {describeImport(pending.players, pending.sessions)} saved from before you signed in that{' '}
-                {pending.players + pending.sessions === 1 ? 'is' : 'are'} not in your account.
-              </p>
-              <Button
-                className="mt-3"
-                onClick={() => {
-                  const done = pending.run()
-                  setCopied(describeImport(done.players, done.sessions))
-                }}
-              >
-                Copy to my account
+              <p>{t.account.notInAccount(pending.players, pending.sessions)}</p>
+              <Button className="mt-3" onClick={() => setCopied(pending.run())}>
+                {t.account.copy}
               </Button>
             </div>
           )}
-          {copied && <p className="mt-3 text-good">Copied {copied} to your account.</p>}
+          {copied && (
+            <p className="mt-3 text-good">
+              {t.account.copied(copied.players, copied.sessions)}
+            </p>
+          )}
 
           <Button className="mt-6" disabled={busy} onClick={() => run(signOut)}>
-            Sign out
+            {t.account.signOut}
           </Button>
-          <p className="mt-2 text-sm text-muted">After signing out you see the data saved on this device again.</p>
+          <p className="mt-2 text-sm text-muted">{t.account.afterSignOut}</p>
         </>
       ) : (
         <>
-          <p className="mt-3 text-muted">
-            You do not need an account. Signing in keeps your players and sessions in sync between your devices.
-          </p>
+          <p className="mt-3 text-muted">{t.account.noAccountNeeded}</p>
           <Button variant="primary" className="mt-5" disabled={busy} onClick={() => run(signIn)}>
-            Sign in with Google
+            {t.account.signInGoogle}
           </Button>
-          {syncError && <p className="mt-3 text-bad">{syncError}</p>}
+          {syncMessage && (
+            <p className="mt-3 text-bad">
+              {syncMessage}
+            </p>
+          )}
         </>
       )}
-      {error && <p className="mt-3 text-bad">{error}</p>}
+      {failed && (
+        <p className="mt-3 text-bad">
+          {t.account.failed}
+        </p>
+      )}
+
+      <LanguagePicker />
     </section>
+  )
+}
+
+function LanguagePicker() {
+  const t = useT()
+  const choice = useLanguage((s) => s.choice)
+  return (
+    <>
+      <h2 className="mt-8 mb-2 font-semibold">{t.language.title}</h2>
+      <Segmented<LanguageChoice>
+        label={t.language.title}
+        value={choice}
+        onChange={setLanguageChoice}
+        options={[
+          { value: 'auto', label: t.language.automatic },
+          // Each language is named in itself, so it can be found from the other one.
+          { value: 'en', label: 'English' },
+          { value: 'sv', label: 'Svenska' },
+        ]}
+      />
+      <p className="mt-2 text-sm text-muted">{t.language.note}</p>
+    </>
   )
 }

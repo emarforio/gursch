@@ -1,20 +1,21 @@
 import { useState } from 'react'
 import { importAnswered, markImport } from '../../data/migrate'
-import { describeImport, useImport } from '../pages/AccountPage'
+import { useT } from '../../i18n'
+import { useImport } from '../pages/AccountPage'
 import { Button } from './Button'
 
 /** Asks once, after the first sign-in on a device, whether to copy its local data into the account. */
 export function ImportBanner() {
+  const t = useT()
   const pending = useImport()
   const [, refresh] = useState(0)
   if (!pending || pending.players + pending.sessions === 0 || importAnswered(pending.uid)) return null
 
   return (
     <div className="mb-5 rounded-xl bg-surface p-3">
-      <p className="font-semibold">Copy this device's data to your account?</p>
+      <p className="font-semibold">{t.account.bannerTitle}</p>
       <p className="mt-1 text-sm text-muted">
-        This device has {describeImport(pending.players, pending.sessions)} saved from before you signed in. You can also do
-        this later from the Account page.
+        {t.account.bannerText(pending.players, pending.sessions)}
       </p>
       <div className="mt-3 flex gap-2">
         <Button
@@ -25,7 +26,7 @@ export function ImportBanner() {
             refresh((n) => n + 1)
           }}
         >
-          Copy to my account
+          {t.account.copy}
         </Button>
         <Button
           size="sm"
@@ -34,7 +35,7 @@ export function ImportBanner() {
             refresh((n) => n + 1)
           }}
         >
-          Not now
+          {t.account.notNow}
         </Button>
       </div>
     </div>

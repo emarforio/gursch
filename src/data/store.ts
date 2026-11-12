@@ -11,8 +11,12 @@ type Store = Data & {
   user: User | null
   /** True until the active storage has delivered its data. */
   loading: boolean
+  /** A message from the sync service, or SYNC_UNREACHABLE. */
   syncError: string | null
 }
+
+/** Value of syncError when the sync service could not be loaded at all. The UI holds the wording. */
+export const SYNC_UNREACHABLE = 'unreachable'
 
 /** Remembers that this device was signed in, so startup waits for the account instead of flashing local data. */
 const SIGNED_IN_KEY = 'gursch.v1.signedIn'
@@ -75,7 +79,7 @@ async function startAuth() {
       activate(cloud)
     })
   } catch {
-    useStore.setState({ syncError: 'Could not reach the sync service. Showing the data on this device.' })
+    useStore.setState({ syncError: SYNC_UNREACHABLE })
     useLocal()
   }
 }

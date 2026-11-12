@@ -28,9 +28,11 @@ export function firstDeal(startCards: number, playerCount: number): number {
   return clamp(startCards, 1, maxDeal(playerCount))
 }
 
-/** Reminder shown for the small deals that have special rules. */
-export function dealHint(cards: number): string | null {
-  if (cards === 1) return 'Dealt face down, no trade. One extra face-up card each decides the leader.'
-  if (cards === 2) return 'No first trade. An open trade is still allowed.'
+export type DealHint = 'oneCard' | 'twoCards'
+
+/** Which reminder to show for the small deals that have special rules. The UI holds the wording. */
+export function dealHint(cards: number): DealHint | null {
+  if (cards === 1) return 'oneCard'
+  if (cards === 2) return 'twoCards'
   return null
 }

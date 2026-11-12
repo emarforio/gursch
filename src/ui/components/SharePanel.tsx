@@ -3,12 +3,14 @@ import { Link } from 'react-router-dom'
 import { firebaseConfigured } from '../../data/config'
 import { useStore } from '../../data/store'
 import type { Session } from '../../domain/types'
+import { useT } from '../../i18n'
 import { Button } from './Button'
 
 /** Turns live sharing of a session on and off and shows the link to send. */
 export function SharePanel({ session }: { session: Session }) {
   const user = useStore((s) => s.user)
   const repo = useStore((s) => s.repo)
+  const t = useT()
   const [copied, setCopied] = useState(false)
   if (!firebaseConfigured) return null
 
@@ -34,38 +36,38 @@ export function SharePanel({ session }: { session: Session }) {
 
   return (
     <div className="mt-6 rounded-xl bg-surface p-3">
-      <h2 className="font-semibold">Share</h2>
+      <h2 className="font-semibold">{t.share.title}</h2>
       {!user ? (
         <p className="mt-1 text-muted">
           <Link to="/account" className="text-accent underline">
-            Sign in
+            {t.share.signIn}
           </Link>{' '}
-          to get a link that lets others follow this session live.
+          {t.share.signInRest}
         </p>
       ) : session.ownerUid !== user.uid ? (
-        <p className="mt-1 text-muted">This session is saved on this device only, so it cannot be shared.</p>
+        <p className="mt-1 text-muted">{t.share.deviceOnly}</p>
       ) : !session.shared ? (
         <>
-          <p className="mt-1 text-muted">Anyone with the link can follow the scores live. They cannot change anything.</p>
+          <p className="mt-1 text-muted">{t.share.anyoneCan}</p>
           <Button className="mt-3" onClick={() => repo.saveSession({ ...session, shared: true })}>
-            Create a share link
+            {t.share.create}
           </Button>
         </>
       ) : (
         <>
-          <p className="mt-1 text-muted">Anyone with this link can follow the scores live. They cannot change anything.</p>
+          <p className="mt-1 text-muted">{t.share.anyoneCan}</p>
           <p className="mt-3 select-all break-all rounded-lg bg-bg px-3 py-2 text-sm">{url}</p>
           <div className="mt-3 flex flex-wrap gap-2">
             <Button size="sm" variant="primary" onClick={copy}>
-              {copied ? 'Copied' : 'Copy link'}
+              {copied ? t.share.copied : t.share.copyLink}
             </Button>
             {typeof navigator.share === 'function' && (
               <Button size="sm" onClick={send}>
-                Send…
+                {t.share.send}
               </Button>
             )}
             <Button size="sm" onClick={() => repo.saveSession({ ...session, shared: false })}>
-              Stop sharing
+              {t.share.stop}
             </Button>
           </div>
         </>

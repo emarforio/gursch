@@ -1,17 +1,16 @@
 import { useState } from 'react'
 import { FormulaError } from '../../domain/formula'
 import { roundAmount } from '../../domain/ledger'
-import { cardLabel, isValidScore, needsLastTrickLeader, resolveRound, scoreRange } from '../../domain/scoring'
-import { FINISH_NAMES } from '../../domain/types'
+import { isValidScore, needsLastTrickLeader, resolveRound, scoreRange } from '../../domain/scoring'
 import type { Finish, Scores, SessionPlayer } from '../../domain/types'
-import { fmtMoney } from '../format'
+import { useT } from '../../i18n'
+import { fmtMoney, formulaProblem } from '../format'
 import { Avatar } from './Avatar'
 import { Button } from './Button'
 import { Segmented } from './Controls'
 
 const NUMBER_CARDS = [2, 3, 4, 5, 6, 7, 8, 9, 10]
 const FACE_CARDS = [11, 12, 13, 14]
-const FACE_NAMES: Record<number, string> = { 11: 'Jack', 12: 'Queen', 13: 'King', 14: 'Ace' }
 
 export type RoundResult = {
   finish: Finish
@@ -34,7 +33,8 @@ type Props = {
 }
 
 /** Tap-to-enter scores for one round. Give it a new key to start over. */
-export function RoundEntry({ seats, person, formula, cards, initial, saveLabel = 'Save round', onSave }: Props) {
+export function RoundEntry({ seats, person, formula, cards, initial, saveLabel, onSave }: Props) {
+  const t = useT()
   const [finish, setFinish] = useState<Finish>(initial?.finish ?? 1)
   const [scores, setScores] = useState<Scores>(initial?.scores ?? {})
   const [active, setActive] = useState<number>(initial ? -1 : 0)
@@ -51,7 +51,7 @@ export function RoundEntry({ seats, person, formula, cards, initial, saveLabel =
     try {
       amount = roundAmount(formula, seats, scores, outcome.winnerId, outcome.loserId)
     } catch (e) {
-      amountError = e instanceof FormulaError ? e.message : 'The formula failed'
+      amountError = e instanceof FormulaError ? formulaProblem(t, e.problem) : t.entry.formulaFailed
     }
   }
 
@@ -108,7 +108,8 @@ export function RoundEntry({ seats, person, formula, cards, initial, saveLabel =
           const p = person(id)
           const s = scores[id]
           const isActive = i === active
-          const tag = outcome?.winnerId === id ? 'Winner' : outcome?.loserId === id ? 'Loser' : null
+          const won = outcome?.winnerId === id
+          const lost = outcome?.loserId === id
           return (
             <li key={id} className={i > 0 ? 'border-t border-line' : ''}>
               <button
@@ -123,8 +124,10 @@ export function RoundEntry({ seats, person, formula, cards, initial, saveLabel =
               >
                 <Avatar name={p.name} avatar={p.avatar} size={32} />
                 <span className={`min-w-0 flex-1 truncate ${isActive ? 'font-semibold' : 'font-medium'}`}>{p.name}</span>
-                {tag && (
-                  <span className={`text-sm font-semibold ${tag === 'Winner' ? 'text-good' : 'text-bad'}`}>{tag}</span>
+                {(won || lost) && (
+                  <span className={`text-sm font-semibold ${won ? 'text-good' : 'text-bad'}`}>
+                    {won ? t.common.winner : t.common.loser}
+                  </span>
                 )}
                 <span className="tabular w-10 text-right text-xl font-bold">
                   {isActive && finish > 1 && draft !== '' ? (
@@ -132,7 +135,7 @@ export function RoundEntry({ seats, person, formula, cards, initial, saveLabel =
                   ) : s === undefined ? (
                     <span className="text-muted">·</span>
                   ) : finish === 1 ? (
-                    cardLabel(s)
+                    t.common.card(s)
                   ) : (
                     s
                   )}
@@ -156,8 +159,8 @@ export function RoundEntry({ seats, person, formula, cards, initial, saveLabel =
               </div>
               <div className="grid grid-cols-4 gap-2">
                 {FACE_CARDS.map((v) => (
-                  <button key={v} onClick={() => enter(v)} className={faceKey} aria-label={FACE_NAMES[v]}>
-                    {cardLabel(v)}
+                  <button key={v} onClick={() => enter(v)} className={faceKey} aria-label={t.common.faceCards[v]}>
+                    {t.common.card(v)}
                   </button>
                 ))}
               </div>
@@ -165,7 +168,7 @@ export function RoundEntry({ seats, person, formula, cards, initial, saveLabel =
           ) : (
             <div>
               <p className="mb-2 text-sm text-muted">
-                Sum of {person(seats[active]!).name}'s {finish} cards, {range.min} to {range.max}.
+                {t.entry.sumPrompt(person(seats[active]!).name, finish, range.min, range.max)}
               </p>
               <div className="grid grid-cols-5 gap-2">
                 {[1, 2, 3, 4, 5, 6, 7, 8, 9, 0].map((d) => (
@@ -176,17 +179,17 @@ export function RoundEntry({ seats, person, formula, cards, initial, saveLabel =
               </div>
               <div className="mt-2 grid grid-cols-2 gap-2">
                 <Button onClick={() => setDraft(draft.slice(0, -1))} disabled={draft === ''}>
-                  Delete
+                  {t.entry.delete}
                 </Button>
                 <Button variant="primary" disabled={!draftOk} onClick={() => enter(draftValue)}>
-                  Next
+                  {t.entry.next}
                 </Button>
               </div>
             </div>
           )
         ) : tie && !leaderId ? (
           <div className="rounded-xl bg-surface p-3">
-            <p className="font-semibold">There is a tie. Who led the last trick?</p>
+            <p className="font-semibold">{t.entry.tieQuestion}</p>
             <div className="mt-3 grid grid-cols-2 gap-2">
               {seats.map((id) => (
                 <Button key={id} onClick={() => setLeaderId(id)} className="truncate">
@@ -199,24 +202,24 @@ export function RoundEntry({ seats, person, formula, cards, initial, saveLabel =
           outcome && (
             <div className="rounded-xl bg-surface p-3">
               {amountError ? (
-                <p className="text-bad">The money formula gave an error: {amountError}. Change it in the session settings.</p>
+                <p className="text-bad">{t.entry.formulaError(amountError)}</p>
               ) : (
                 <p className="text-lg">
-                  <span className="font-semibold">{person(outcome.loserId).name}</span> owes{' '}
+                  <span className="font-semibold">{person(outcome.loserId).name}</span> {t.common.owes}{' '}
                   <span className="font-semibold">{person(outcome.winnerId).name}</span>{' '}
                   <span className="tabular font-bold">{fmtMoney(amount!)}</span>
                 </p>
               )}
               {tie && leaderId && (
                 <p className="mt-1 text-sm text-muted">
-                  Tie decided from {person(leaderId).name}, who led the last trick.{' '}
+                  {t.entry.tieDecided(person(leaderId).name)}{' '}
                   <button className="underline" onClick={() => setLeaderId(undefined)}>
-                    Change
+                    {t.entry.change}
                   </button>
                 </p>
               )}
               <Button variant="primary" className="mt-3 w-full" disabled={amount === null} onClick={save}>
-                {saveLabel}
+                {saveLabel ?? t.entry.saveRound}
               </Button>
             </div>
           )
@@ -225,12 +228,12 @@ export function RoundEntry({ seats, person, formula, cards, initial, saveLabel =
 
       {finishOptions.length > 1 && (
         <div className="mt-4 flex items-center justify-between gap-3">
-          <span className="text-sm text-muted">Finished on</span>
+          <span className="text-sm text-muted">{t.entry.finishedOn}</span>
           <Segmented
-            label="Finish"
+            label={t.entry.finish}
             value={finish}
             onChange={changeFinish}
-            options={finishOptions.map((f) => ({ value: f, label: FINISH_NAMES[f] }))}
+            options={finishOptions.map((f) => ({ value: f, label: t.common.finishes[f] }))}
           />
         </div>
       )}

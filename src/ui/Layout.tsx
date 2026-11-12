@@ -1,22 +1,25 @@
 import { useEffect, useState } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useStore } from '../data/store'
+import { useT } from '../i18n'
 import { Avatar } from './components/Avatar'
 import { ImportBanner } from './components/ImportBanner'
-
-const pages = [
-  { to: '/', label: 'Game' },
-  { to: '/history', label: 'History' },
-  { to: '/stats', label: 'Stats' },
-  { to: '/players', label: 'Players' },
-  { to: '/rules', label: 'Rules' },
-]
 
 export function Layout() {
   const user = useStore((s) => s.user)
   const loading = useStore((s) => s.loading)
+  const t = useT()
   const [open, setOpen] = useState(false)
   const location = useLocation()
+
+  const pages = [
+    { to: '/', label: t.nav.game },
+    { to: '/history', label: t.nav.history },
+    { to: '/stats', label: t.nav.stats },
+    { to: '/players', label: t.nav.players },
+    { to: '/rules', label: t.nav.rules },
+  ]
+  const userName = user && (user.name || t.account.signedIn)
 
   // Close the menu whenever the page changes.
   useEffect(() => setOpen(false), [location])
@@ -43,17 +46,17 @@ export function Layout() {
             ))}
             <NavLink
               to="/account"
-              aria-label="Account"
+              aria-label={userName ? t.nav.accountOf(userName) : t.nav.account}
               className={({ isActive }) => `ml-1 flex items-center px-1 text-sm font-medium ${isActive ? 'text-accent' : 'text-muted'}`}
             >
-              {user ? <Avatar name={user.name} avatar={user.photo} size={30} /> : 'Account'}
+              {user ? <Avatar name={userName!} avatar={user.photo} size={30} /> : t.nav.account}
             </NavLink>
           </nav>
 
           {/* Mobile: one menu button. */}
           <button
             className="-mr-2 flex h-11 w-11 items-center justify-center rounded-lg sm:hidden"
-            aria-label={open ? 'Close menu' : 'Open menu'}
+            aria-label={open ? t.nav.closeMenu : t.nav.openMenu}
             aria-expanded={open}
             onClick={() => setOpen(!open)}
           >
@@ -65,7 +68,7 @@ export function Layout() {
 
         {open && (
           <nav className="absolute inset-x-0 top-full border-b border-line bg-surface shadow-lg sm:hidden">
-            {[...pages, { to: '/account', label: user ? `Account (${user.name})` : 'Account' }].map((p) => (
+            {[...pages, { to: '/account', label: userName ? t.nav.accountOf(userName) : t.nav.account }].map((p) => (
               <NavLink
                 key={p.to}
                 to={p.to}
@@ -82,12 +85,12 @@ export function Layout() {
         )}
       </header>
 
-      {open && <button className="fixed inset-0 z-10 bg-black/30 sm:hidden" aria-label="Close menu" onClick={() => setOpen(false)} />}
+      {open && <button className="fixed inset-0 z-10 bg-black/30 sm:hidden" aria-label={t.nav.closeMenu} onClick={() => setOpen(false)} />}
 
       <main className="flex-1 overflow-y-auto" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
         <div className="mx-auto max-w-3xl px-4 py-5">
           {loading ? (
-            <p className="text-muted">Loading your data…</p>
+            <p className="text-muted">{t.nav.loading}</p>
           ) : (
             <>
               <ImportBanner />

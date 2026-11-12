@@ -12,11 +12,6 @@ export function isValidScore(score: number, finish: Finish): boolean {
   return Number.isInteger(score) && score >= min && score <= max
 }
 
-/** Label for a single card value: 2-10, J, Q, K, A. */
-export function cardLabel(value: number): string {
-  return ({ 11: 'J', 12: 'Q', 13: 'K', 14: 'A' } as Record<number, string>)[value] ?? String(value)
-}
-
 function scoreOf(scores: Scores, id: string): number {
   const s = scores[id]
   if (s === undefined) throw new Error(`Missing score for player ${id}`)

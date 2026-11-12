@@ -1,13 +1,14 @@
 import { useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useStore } from '../../data/store'
-import { cardLabel } from '../../domain/scoring'
 import { computeStats } from '../../domain/stats'
 import type { PlayerStats, RecordRound, Stats } from '../../domain/stats'
 import type { Player, Session, SessionPlayer } from '../../domain/types'
+import { useT } from '../../i18n'
+import type { Dictionary } from '../../i18n'
 import { Avatar } from '../components/Avatar'
 import { CardBars, LineChart, seriesColor } from '../components/Charts'
-import { fmtAverage, fmtMoney, fmtSigned } from '../format'
+import { fmtAverage, fmtMoney, fmtPercent, fmtSigned } from '../format'
 
 type Person = (id: string) => SessionPlayer
 
@@ -18,7 +19,7 @@ function personLookup(players: Player[], sessions: Session[]): Person {
   return (id) => map.get(id) ?? { id, name: '?' }
 }
 
-const pct = (part: number, whole: number) => (whole ? `${Math.round((part / whole) * 100)}%` : '–')
+const pct = fmtPercent
 const tone = (n: number) => (n > 0 ? 'text-good' : n < 0 ? 'text-bad' : '')
 
 export function StatsPage() {
@@ -26,6 +27,7 @@ export function StatsPage() {
   const sessions = useStore((s) => s.sessions)
   const [params, setParams] = useSearchParams()
   const [pickedId, setPickedId] = useState<string | null>(null)
+  const t = useT()
 
   const sorted = [...sessions].sort((a, b) => b.createdAt - a.createdAt)
   const scopeId = params.get('session')
@@ -40,29 +42,29 @@ export function StatsPage() {
 
   return (
     <section>
-      <h1 className="text-2xl font-bold">Stats</h1>
+      <h1 className="text-2xl font-bold">{t.stats.title}</h1>
 
       <select
         value={scoped?.id ?? ''}
         onChange={(e) => setParams(e.target.value ? { session: e.target.value } : {})}
-        aria-label="Which sessions to include"
+        aria-label={t.stats.scope}
         className="mt-4 h-11 w-full rounded-lg bg-surface px-3 ring-1 ring-line"
       >
-        <option value="">All sessions</option>
+        <option value="">{t.stats.allSessions}</option>
         {sorted.map((s) => (
           <option key={s.id} value={s.id}>
-            {s.name} ({s.rounds.length} rounds)
+            {t.stats.sessionOption(s.name, s.rounds.length)}
           </option>
         ))}
       </select>
 
       {stats.rounds === 0 || !selected ? (
-        <p className="mt-6 text-muted">No rounds to show yet. Stats appear once a round has been saved.</p>
+        <p className="mt-6 text-muted">{t.stats.none}</p>
       ) : (
         <>
           <Overview stats={stats} person={person} allSessions={!scoped} />
 
-          <h2 className="mt-8 mb-2 font-semibold">Money over time</h2>
+          <h2 className="mt-8 mb-2 font-semibold">{t.common.moneyOverTime}</h2>
           <div className="rounded-xl bg-surface p-3">
             <LineChart
               series={stats.timeline.ids.map((id) => ({
@@ -74,17 +76,17 @@ export function StatsPage() {
             />
           </div>
 
-          <h2 className="mt-8 mb-2 font-semibold">Players</h2>
+          <h2 className="mt-8 mb-2 font-semibold">{t.stats.players}</h2>
           <div className="overflow-x-auto rounded-xl bg-surface">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-line text-muted">
-                  <th className="px-3 py-2 text-left font-medium">Player</th>
-                  <th className="px-2 py-2 text-right font-medium">Rounds</th>
-                  <th className="px-2 py-2 text-right font-medium">Won</th>
-                  <th className="px-2 py-2 text-right font-medium">Lost</th>
-                  <th className="px-2 py-2 text-right font-medium">Avg</th>
-                  <th className="px-3 py-2 text-right font-medium">Net</th>
+                  <th className="px-3 py-2 text-left font-medium">{t.stats.player}</th>
+                  <th className="px-2 py-2 text-right font-medium">{t.stats.rounds}</th>
+                  <th className="px-2 py-2 text-right font-medium">{t.stats.won}</th>
+                  <th className="px-2 py-2 text-right font-medium">{t.stats.lost}</th>
+                  <th className="px-2 py-2 text-right font-medium">{t.stats.avg}</th>
+                  <th className="px-3 py-2 text-right font-medium">{t.stats.net}</th>
                 </tr>
               </thead>
               <tbody>
@@ -94,10 +96,10 @@ export function StatsPage() {
                     onClick={() => setPickedId(p.id)}
                     className={`cursor-pointer border-t border-line ${p.id === selected.id ? 'bg-sunken' : ''}`}
                   >
-                    <td className="px-3 py-2">
+                    <td className="w-full max-w-0 px-3 py-2">
                       <span className="flex items-center gap-2">
                         <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: colorOf(p.id) }} />
-                        <span className="font-medium">{person(p.id).name}</span>
+                        <span className="truncate font-medium">{person(p.id).name}</span>
                       </span>
                     </td>
                     <td className="tabular px-2 py-2 text-right">{p.rounds}</td>
@@ -110,19 +112,19 @@ export function StatsPage() {
               </tbody>
             </table>
           </div>
-          <p className="mt-1 text-sm text-muted">Tap a player for their details.</p>
+          <p className="mt-1 text-sm text-muted">{t.stats.tapPlayer}</p>
 
           <PlayerDetail p={selected} stats={stats} person={person} color={colorOf(selected.id)} allSessions={!scoped} />
 
-          <h2 className="mt-8 mb-2 font-semibold">Who pays whom</h2>
+          <h2 className="mt-8 mb-2 font-semibold">{t.stats.whoPays}</h2>
           <ul className="divide-y divide-line rounded-xl bg-surface">
             {stats.pairings.slice(0, 6).map((pair) => (
               <li key={pair.winnerId + pair.loserId} className="flex items-center justify-between gap-3 px-3 py-2.5">
                 <span>
                   <span className="font-medium">{person(pair.loserId).name}</span>
-                  <span className="text-muted"> lost to </span>
+                  <span className="text-muted"> {t.stats.lostTo} </span>
                   <span className="font-medium">{person(pair.winnerId).name}</span>
-                  <span className="text-muted"> {pair.count === 1 ? 'once' : `${pair.count} times`}</span>
+                  <span className="text-muted"> {t.stats.times(pair.count)}</span>
                 </span>
                 <span className="tabular font-semibold">{fmtMoney(pair.amount)}</span>
               </li>
@@ -150,37 +152,38 @@ function Tile({ label, value, note }: { label: string; value: React.ReactNode; n
   )
 }
 
-function matchup(r: RecordRound, person: Person) {
-  return `${person(r.round.loserId).name} to ${person(r.round.winnerId).name}`
+function matchup(t: Dictionary, r: RecordRound, person: Person) {
+  return t.stats.matchup(person(r.round.loserId).name, person(r.round.winnerId).name)
 }
 
 function Overview({ stats, person, allSessions }: { stats: Stats; person: Person; allSessions: boolean }) {
+  const t = useT()
   const big = stats.biggestAmount
   const diff = stats.largestDiff
   const sets = stats.finishes[2] + stats.finishes[3] + stats.finishes[4]
   return (
     <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
-      <Tile label="Rounds" value={stats.rounds} note={allSessions ? `in ${stats.sessions} ${stats.sessions === 1 ? 'session' : 'sessions'}` : undefined} />
-      <Tile label="Average owed" value={stats.averageAmount === null ? '–' : fmtMoney(stats.averageAmount)} note="per round" />
-      {big && <Tile label="Biggest round" value={fmtMoney(big.round.amount)} note={matchup(big, person)} />}
+      <Tile label={t.stats.rounds} value={stats.rounds} note={allSessions ? t.stats.inSessions(stats.sessions) : undefined} />
+      <Tile label={t.stats.averageOwed} value={stats.averageAmount === null ? '–' : fmtMoney(stats.averageAmount)} note={t.stats.perRound} />
+      {big && <Tile label={t.stats.biggestRound} value={fmtMoney(big.round.amount)} note={matchup(t, big, person)} />}
       {diff && (
         <Tile
-          label="Largest difference"
-          value={`${cardLabel(diff.round.scores[diff.round.loserId]!)} against ${cardLabel(diff.round.scores[diff.round.winnerId]!)}`}
-          note={matchup(diff, person)}
+          label={t.stats.largestDiff}
+          value={t.stats.against(t.common.card(diff.round.scores[diff.round.loserId]!), t.common.card(diff.round.scores[diff.round.winnerId]!))}
+          note={matchup(t, diff, person)}
         />
       )}
-      <Tile label="Average difference" value={stats.averageDiff === null ? '–' : stats.averageDiff.toFixed(1)} note="loser minus winner" />
+      <Tile label={t.stats.averageDiff} value={fmtAverage(stats.averageDiff)} note={t.stats.loserMinusWinner} />
       <Tile
-        label="Average deal"
-        value={stats.averageCards === null ? '–' : stats.averageCards.toFixed(1)}
-        note={stats.commonDeal === null ? undefined : `most often ${stats.commonDeal} cards`}
+        label={t.stats.averageDeal}
+        value={fmtAverage(stats.averageCards)}
+        note={stats.commonDeal === null ? undefined : t.stats.mostOften(stats.commonDeal)}
       />
-      <Tile label="Tie-breaks" value={stats.tieBreaks} note={pct(stats.tieBreaks, stats.rounds) + ' of rounds'} />
+      <Tile label={t.stats.tieBreaks} value={stats.tieBreaks} note={t.stats.ofRounds(pct(stats.tieBreaks, stats.rounds))} />
       <Tile
-        label="Multi-card finishes"
+        label={t.stats.multiCard}
         value={sets}
-        note={`${stats.finishes[2]} dofflar, ${stats.finishes[3]} trofflar, ${stats.finishes[4]} fofflar`}
+        note={t.stats.finishCounts(stats.finishes[2], stats.finishes[3], stats.finishes[4])}
       />
     </div>
   )
@@ -188,6 +191,7 @@ function Overview({ stats, person, allSessions }: { stats: Stats; person: Person
 
 function PlayerDetail(props: { p: PlayerStats; stats: Stats; person: Person; color: string; allSessions: boolean }) {
   const { p, stats, person, color, allSessions } = props
+  const t = useT()
   const me = person(p.id)
   const others = stats.players
     .filter((o) => o.id !== p.id)
@@ -207,23 +211,27 @@ function PlayerDetail(props: { p: PlayerStats; stats: Stats; person: Person; col
         <h2 className="text-lg font-bold">{me.name}</h2>
       </div>
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-        <Tile label="Wins" value={p.wins} note={`${pct(p.wins, p.rounds)} of ${p.rounds} rounds`} />
-        <Tile label="Losses" value={p.losses} note={`${pct(p.losses, p.rounds)} of ${p.rounds} rounds`} />
-        <Tile label="Net" value={<span className={tone(p.net)}>{fmtSigned(p.net)}</span>} note={`won ${fmtMoney(p.moneyWon)}, lost ${fmtMoney(p.moneyLost)}`} />
-        {allSessions && <Tile label="Sessions won" value={p.sessionsWon} note={`of ${p.sessions}`} />}
-        <Tile label="Biggest win" value={fmtMoney(p.biggestWin)} />
-        <Tile label="Biggest loss" value={fmtMoney(p.biggestLoss)} />
-        <Tile label="Best win streak" value={p.longestWinStreak} note="rounds in a row" />
-        <Tile label="Worst losing streak" value={p.longestLossStreak} note="rounds in a row" />
-        <Tile label="Finished on an ace" value={p.aces} note={pct(p.aces, singles)} />
-        <Tile label="Finished on a 2" value={p.twos} note={pct(p.twos, singles)} />
-        <Tile label="Ties" value={`${p.tiesWon} – ${p.tiesLost}`} note="went their way – against" />
-        <Tile label="Average card" value={fmtAverage(p.average)} />
+        <Tile label={t.stats.wins} value={p.wins} note={t.stats.shareOfRounds(pct(p.wins, p.rounds), p.rounds)} />
+        <Tile label={t.stats.losses} value={p.losses} note={t.stats.shareOfRounds(pct(p.losses, p.rounds), p.rounds)} />
+        <Tile
+          label={t.stats.net}
+          value={<span className={tone(p.net)}>{fmtSigned(p.net)}</span>}
+          note={t.stats.wonLost(fmtMoney(p.moneyWon), fmtMoney(p.moneyLost))}
+        />
+        {allSessions && <Tile label={t.stats.sessionsWon} value={p.sessionsWon} note={t.stats.of(p.sessions)} />}
+        <Tile label={t.stats.biggestWin} value={fmtMoney(p.biggestWin)} />
+        <Tile label={t.stats.biggestLoss} value={fmtMoney(p.biggestLoss)} />
+        <Tile label={t.stats.winStreak} value={p.longestWinStreak} note={t.stats.inARow} />
+        <Tile label={t.stats.lossStreak} value={p.longestLossStreak} note={t.stats.inARow} />
+        <Tile label={t.stats.onAce} value={p.aces} note={pct(p.aces, singles)} />
+        <Tile label={t.stats.onTwo} value={p.twos} note={pct(p.twos, singles)} />
+        <Tile label={t.stats.ties} value={`${p.tiesWon} – ${p.tiesLost}`} note={t.stats.tiesNote} />
+        <Tile label={t.stats.averageCard} value={fmtAverage(p.average)} />
       </div>
 
       {singles > 0 && (
         <>
-          <h3 className="mt-5 mb-2 font-semibold">Final cards</h3>
+          <h3 className="mt-5 mb-2 font-semibold">{t.stats.finalCards}</h3>
           <div className="rounded-xl bg-surface p-3">
             <CardBars key={p.id} counts={p.cards} color={color} />
           </div>
@@ -232,15 +240,15 @@ function PlayerDetail(props: { p: PlayerStats; stats: Stats; person: Person; col
 
       {others.length > 0 && (
         <>
-          <h3 className="mt-5 mb-2 font-semibold">Head to head</h3>
+          <h3 className="mt-5 mb-2 font-semibold">{t.stats.headToHead}</h3>
           <div className="overflow-x-auto rounded-xl bg-surface">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-line text-muted">
-                  <th className="px-3 py-2 text-left font-medium">Against</th>
-                  <th className="px-2 py-2 text-right font-medium">Took</th>
-                  <th className="px-2 py-2 text-right font-medium">Paid</th>
-                  <th className="px-3 py-2 text-right font-medium">Net</th>
+                  <th className="px-3 py-2 text-left font-medium">{t.stats.opponent}</th>
+                  <th className="px-2 py-2 text-right font-medium">{t.stats.took}</th>
+                  <th className="px-2 py-2 text-right font-medium">{t.stats.paid}</th>
+                  <th className="px-3 py-2 text-right font-medium">{t.stats.net}</th>
                 </tr>
               </thead>
               <tbody>
@@ -259,7 +267,7 @@ function PlayerDetail(props: { p: PlayerStats; stats: Stats; person: Person; col
               </tbody>
             </table>
           </div>
-          <p className="mt-1 text-sm text-muted">Amounts, with the number of rounds in brackets.</p>
+          <p className="mt-1 text-sm text-muted">{t.stats.headToHeadNote}</p>
         </>
       )}
     </div>

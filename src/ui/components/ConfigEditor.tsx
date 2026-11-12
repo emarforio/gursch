@@ -1,7 +1,8 @@
 import { dealCap, maxDeal } from '../../domain/deal'
 import { evaluateFormula, validateFormula } from '../../domain/formula'
 import type { DealRule, SessionConfig } from '../../domain/types'
-import { fmtMoney } from '../format'
+import { useT } from '../../i18n'
+import { fmtMoney, formulaProblem } from '../format'
 import { Segmented, Stepper } from './Controls'
 
 const PRESETS = ['(max_score - min_score) * 2', 'max_score^2', '(max_score * min_score) / 100']
@@ -16,18 +17,20 @@ type Props = {
 }
 
 export function ConfigEditor({ config, onChange, playerCount, showStartCards }: Props) {
+  const t = useT()
   const players = Math.max(playerCount, 2)
   const top = maxDeal(players)
   const rule = config.dealRule
   const setRule = (patch: Partial<DealRule>) => onChange({ ...config, dealRule: { ...rule, ...patch } })
-  const error = validateFormula(config.formula)
+  const problem = validateFormula(config.formula)
+  const error = problem && formulaProblem(t, problem)
 
   let example: string | null = null
   if (!error) {
     try {
       example = fmtMoney(evaluateFormula(config.formula, EXAMPLE))
     } catch {
-      example = 'not a number'
+      example = t.config.exampleNotANumber
     }
   }
 
@@ -35,9 +38,9 @@ export function ConfigEditor({ config, onChange, playerCount, showStartCards }: 
     <div className="space-y-5">
       {showStartCards && (
         <div className="flex items-center justify-between gap-3">
-          <span>Cards in the first round</span>
+          <span>{t.config.firstRound}</span>
           <Stepper
-            label="Cards in the first round"
+            label={t.config.firstRound}
             value={Math.min(config.startCards, top)}
             min={1}
             max={top}
@@ -47,27 +50,27 @@ export function ConfigEditor({ config, onChange, playerCount, showStartCards }: 
       )}
 
       <div>
-        <div className="mb-2">Cards in the following rounds</div>
+        <div className="mb-2">{t.config.followingRounds}</div>
         <Segmented
-          label="Deal rule"
+          label={t.config.dealRule}
           value={rule.mode}
           onChange={(mode) => setRule({ mode, fixed: mode === 'fixed' ? (rule.fixed ?? config.startCards) : rule.fixed })}
           options={[
-            { value: 'difference', label: 'Difference' },
-            { value: 'loserScore', label: "Loser's score" },
-            { value: 'fixed', label: 'Fixed' },
+            { value: 'difference', label: t.config.difference },
+            { value: 'loserScore', label: t.config.loserScore },
+            { value: 'fixed', label: t.config.fixed },
           ]}
         />
         <p className="mt-2 text-sm text-muted">
-          {rule.mode === 'difference' && "The loser's score minus the winner's score."}
-          {rule.mode === 'loserScore' && "As many cards as the loser's score."}
-          {rule.mode === 'fixed' && 'The same number of cards every round.'}
+          {rule.mode === 'difference' && t.config.differenceNote}
+          {rule.mode === 'loserScore' && t.config.loserScoreNote}
+          {rule.mode === 'fixed' && t.config.fixedNote}
         </p>
         {rule.mode === 'fixed' ? (
           <div className="mt-3 flex items-center justify-between gap-3">
-            <span>Cards each round</span>
+            <span>{t.config.cardsEachRound}</span>
             <Stepper
-              label="Cards each round"
+              label={t.config.cardsEachRound}
               value={Math.min(rule.fixed ?? config.startCards, top)}
               min={1}
               max={top}
@@ -83,9 +86,9 @@ export function ConfigEditor({ config, onChange, playerCount, showStartCards }: 
               onChange={(e) => setRule({ capBelowMax: e.target.checked ? 1 : 0 })}
             />
             <span>
-              Keep one below the largest deal
+              {t.config.keepOneBelow}
               <span className="block text-sm text-muted">
-                At most {dealCap(rule, players)} cards with {players} players.
+                {t.config.atMost(dealCap(rule, players), players)}
               </span>
             </span>
           </label>
@@ -94,7 +97,7 @@ export function ConfigEditor({ config, onChange, playerCount, showStartCards }: 
 
       <div>
         <label htmlFor="formula" className="mb-2 block">
-          Money formula
+          {t.config.moneyFormula}
         </label>
         <input
           id="formula"
@@ -106,7 +109,7 @@ export function ConfigEditor({ config, onChange, playerCount, showStartCards }: 
           className="h-11 w-full rounded-lg bg-bg px-3 outline-none ring-1 ring-line focus:ring-2 focus:ring-accent"
         />
         <p className={`mt-1 text-sm ${error ? 'text-bad' : 'text-muted'}`}>
-          {error ?? `Loser on K (13), winner on 3: the loser owes ${example}.`}
+          {error ?? t.config.example(example ?? '')}
         </p>
         <div className="mt-2 flex flex-wrap gap-2">
           {PRESETS.map((p) => (
@@ -121,7 +124,7 @@ export function ConfigEditor({ config, onChange, playerCount, showStartCards }: 
           ))}
         </div>
         <p className="mt-2 text-sm text-muted">
-          You can use max_score, min_score, total and players, with + − * / ^ and brackets.
+          {t.config.help}
         </p>
       </div>
     </div>

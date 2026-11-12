@@ -36,7 +36,7 @@ export function watchUser(cb: (user: User | null) => void): () => void {
     cb(
       u && {
         uid: u.uid,
-        name: u.displayName ?? u.email ?? 'Signed in',
+        name: u.displayName ?? u.email ?? '',
         email: u.email ?? '',
         ...(u.photoURL ? { photo: u.photoURL } : {}),
       },

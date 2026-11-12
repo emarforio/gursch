@@ -1,16 +1,18 @@
 import { useEffect, useState } from 'react'
+import { useT } from '../../i18n'
 import { Button } from './Button'
 
 export function Stepper(props: { value: number; min: number; max: number; onChange: (v: number) => void; label: string }) {
   const { value, min, max, onChange, label } = props
+  const t = useT()
   const btn = 'h-10 w-10 rounded-lg bg-sunken text-xl font-medium disabled:opacity-40'
   return (
     <div className="flex items-center gap-2" role="group" aria-label={label}>
-      <button type="button" className={btn} disabled={value <= min} onClick={() => onChange(value - 1)} aria-label="Fewer">
+      <button type="button" className={btn} disabled={value <= min} onClick={() => onChange(value - 1)} aria-label={t.common.fewer}>
         −
       </button>
       <span className="tabular w-8 text-center text-lg font-semibold">{value}</span>
-      <button type="button" className={btn} disabled={value >= max} onClick={() => onChange(value + 1)} aria-label="More">
+      <button type="button" className={btn} disabled={value >= max} onClick={() => onChange(value + 1)} aria-label={t.common.more}>
         +
       </button>
     </div>
@@ -44,6 +46,7 @@ export function Segmented<T extends string | number>(props: {
 
 /** Asks for a second tap before running a destructive action. */
 export function ConfirmButton(props: { label: string; onConfirm: () => void; danger?: boolean }) {
+  const t = useT()
   const [armed, setArmed] = useState(false)
   useEffect(() => {
     if (!armed) return
@@ -60,7 +63,7 @@ export function ConfirmButton(props: { label: string; onConfirm: () => void; dan
         setArmed(!armed)
       }}
     >
-      {armed ? 'Tap again to confirm' : props.label}
+      {armed ? t.common.tapAgain : props.label}
     </Button>
   )
 }

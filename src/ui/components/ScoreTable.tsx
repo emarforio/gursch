@@ -1,12 +1,12 @@
-import { cardLabel } from '../../domain/scoring'
 import { sessionTotals } from '../../domain/session'
-import { FINISH_NAMES } from '../../domain/types'
 import type { Session, SessionPlayer } from '../../domain/types'
+import { useT } from '../../i18n'
 import { fmtAverage, fmtMoney, fmtSigned } from '../format'
 
 type Props = { session: Session; person: (id: string) => SessionPlayer; onPickRound?: (roundId: string) => void }
 
 export function ScoreTable({ session, person, onPickRound }: Props) {
+  const t = useT()
   const ids = session.players.map((p) => p.id).sort((a, b) => seatRank(session, a) - seatRank(session, b))
   const totals = sessionTotals(session)
   const rounds = session.rounds.map((r, i) => ({ r, n: i + 1 })).reverse()
@@ -23,14 +23,14 @@ export function ScoreTable({ session, person, onPickRound }: Props) {
                 {person(id).name}
               </th>
             ))}
-            <th className="px-2 py-2 text-right font-medium">Owed</th>
+            <th className="px-2 py-2 text-right font-medium">{t.table.owed}</th>
           </tr>
         </thead>
         <tbody>
-          <SummaryRow label="Balance" ids={ids} value={(id) => fmtSigned(totals[id]!.balance)} strong tone={(id) => totals[id]!.balance} />
-          <SummaryRow label="Wins" ids={ids} value={(id) => String(totals[id]!.wins)} />
-          <SummaryRow label="Losses" ids={ids} value={(id) => String(totals[id]!.losses)} />
-          <SummaryRow label="Average" ids={ids} value={(id) => fmtAverage(totals[id]!.average)} last />
+          <SummaryRow label={t.table.balance} ids={ids} value={(id) => fmtSigned(totals[id]!.balance)} strong tone={(id) => totals[id]!.balance} />
+          <SummaryRow label={t.table.wins} ids={ids} value={(id) => String(totals[id]!.wins)} />
+          <SummaryRow label={t.table.losses} ids={ids} value={(id) => String(totals[id]!.losses)} />
+          <SummaryRow label={t.table.average} ids={ids} value={(id) => fmtAverage(totals[id]!.average)} />
           {rounds.map(({ r, n }) => (
             <tr
               key={r.id}
@@ -39,14 +39,14 @@ export function ScoreTable({ session, person, onPickRound }: Props) {
             >
               <td className="px-2 py-1.5 text-left text-muted tabular">
                 {n}
-                {r.finish > 1 && <span className="ml-1 text-xs">{FINISH_NAMES[r.finish]}</span>}
+                {r.finish > 1 && <span className="ml-1 text-xs">{t.common.finishes[r.finish]}</span>}
               </td>
               {ids.map((id) => {
                 const s = r.scores[id]
                 const tone = id === r.winnerId ? 'font-bold text-good' : id === r.loserId ? 'font-bold text-bad' : ''
                 return (
                   <td key={id} className={`${cell} ${tone}`}>
-                    {s === undefined ? '' : r.finish === 1 ? cardLabel(s) : s}
+                    {s === undefined ? '' : r.finish === 1 ? t.common.card(s) : s}
                   </td>
                 )
               })}
@@ -55,9 +55,9 @@ export function ScoreTable({ session, person, onPickRound }: Props) {
           ))}
         </tbody>
       </table>
-      {rounds.length === 0 && <p className="px-3 py-4 text-sm text-muted">No rounds played yet.</p>}
+      {rounds.length === 0 && <p className="px-3 py-4 text-sm text-muted">{t.table.noRounds}</p>}
       {rounds.length > 0 && onPickRound && (
-        <p className="border-t border-line px-3 py-2 text-xs text-muted">Tap a round to change or delete it.</p>
+        <p className="border-t border-line px-3 py-2 text-xs text-muted">{t.table.tapRound}</p>
       )}
     </div>
   )
@@ -73,11 +73,10 @@ function SummaryRow(props: {
   ids: string[]
   value: (id: string) => string
   strong?: boolean
-  last?: boolean
   tone?: (id: string) => number
 }) {
   return (
-    <tr className={`bg-sunken/50 ${props.last ? '' : ''}`}>
+    <tr className="bg-sunken/50">
       <td className="px-2 py-1 text-left text-xs text-muted">{props.label}</td>
       {props.ids.map((id) => {
         const t = props.tone?.(id) ?? 0

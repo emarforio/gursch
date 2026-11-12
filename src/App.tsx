@@ -1,4 +1,5 @@
 import { Route, Routes } from 'react-router-dom'
+import { useT } from './i18n'
 import { Layout } from './ui/Layout'
 import { AccountPage } from './ui/pages/AccountPage'
 import { HistoryPage } from './ui/pages/HistoryPage'
@@ -11,11 +12,10 @@ import { RulesPage } from './ui/pages/RulesPage'
 import { SeatingPage } from './ui/pages/SeatingPage'
 import { SessionPage } from './ui/pages/SessionPage'
 import { SharedPage } from './ui/pages/SharedPage'
-
 import { StatsPage } from './ui/pages/StatsPage'
 
-
 export function App() {
+  const t = useT()
   return (
     <Routes>
       <Route element={<Layout />}>
@@ -30,7 +30,7 @@ export function App() {
         <Route path="players" element={<PlayersPage />} />
         <Route path="rules" element={<RulesPage />} />
         <Route path="account" element={<AccountPage />} />
-        <Route path="*" element={<Placeholder title="Not found" note="That page does not exist." />} />
+        <Route path="*" element={<Placeholder title={t.nav.notFound} note={t.nav.notFoundNote} />} />
       </Route>
     </Routes>
   )

@@ -1,6 +1,7 @@
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useStore } from '../../data/store'
 import type { SessionConfig } from '../../domain/types'
+import { useT } from '../../i18n'
 import { Button } from '../components/Button'
 import { ConfigEditor, isConfigValid } from '../components/ConfigEditor'
 import { ConfirmButton } from '../components/Controls'
@@ -17,13 +18,14 @@ export function SessionPage() {
   const settings = useStore((s) => s.settings)
   const repo = useStore((s) => s.repo)
   const session = sessions.find((s) => s.id === id)
+  const t = useT()
 
   if (!session) {
     return (
       <section>
-        <h1 className="text-2xl font-bold">Session not found</h1>
+        <h1 className="text-2xl font-bold">{t.session.notFound}</h1>
         <Link to="/history" className="mt-3 inline-block text-accent underline">
-          Back to history
+          {t.session.backToHistory}
         </Link>
       </section>
     )
@@ -65,12 +67,12 @@ export function SessionPage() {
     <section>
       <h1 className="text-2xl font-bold">{session.name}</h1>
       <p className="mt-1 text-muted">
-        {fmtDate(session.createdAt)} · {rounds} {rounds === 1 ? 'round' : 'rounds'} · {ended ? 'Ended' : 'In progress'}
+        {fmtDate(session.createdAt)} · {t.common.rounds(rounds)} · {ended ? t.common.ended : t.common.inProgress}
       </p>
 
       {isCurrent && (
         <Link to="/" className="mt-4 flex h-11 items-center justify-center rounded-lg bg-accent font-medium text-accent-text">
-          Back to the game
+          {t.session.backToGame}
         </Link>
       )}
 
@@ -79,26 +81,26 @@ export function SessionPage() {
           to={`/stats?session=${session.id}`}
           className="mt-3 flex h-11 items-center justify-center rounded-lg bg-sunken font-medium"
         >
-          Stats for this session
+          {t.session.stats}
         </Link>
       )}
 
-      <h2 className="mt-6 mb-2 font-semibold">Settle up</h2>
+      <h2 className="mt-6 mb-2 font-semibold">{t.common.settleUp}</h2>
       <SettleUp session={session} person={person} />
 
-      <h2 className="mt-6 mb-2 font-semibold">Scores</h2>
+      <h2 className="mt-6 mb-2 font-semibold">{t.common.scores}</h2>
       <ScoreTable session={session} person={person} onPickRound={(rid) => navigate(`/session/${session.id}/round/${rid}`)} />
 
       <SharePanel session={session} />
 
       {!ended && (
         <details className="mt-6 rounded-xl bg-surface">
-          <summary className="cursor-pointer px-3 py-3 font-semibold">Deal and money settings</summary>
+          <summary className="cursor-pointer px-3 py-3 font-semibold">{t.common.dealAndMoney}</summary>
           <div className="border-t border-line px-3 py-4">
-            <p className="mb-4 text-sm text-muted">Changes apply to the coming rounds. Rounds already played keep their amounts.</p>
+            <p className="mb-4 text-sm text-muted">{t.session.settingsNote}</p>
             <ConfigEditor config={session.config} onChange={setConfig} playerCount={session.seats.length} />
             {!isConfigValid(session.config) && (
-              <p className="mt-3 text-sm text-bad">Fix the formula before saving the next round.</p>
+              <p className="mt-3 text-sm text-bad">{t.session.fixFormula}</p>
             )}
           </div>
         </details>
@@ -107,16 +109,16 @@ export function SessionPage() {
       <div className="mt-6 flex flex-wrap gap-2">
         {!ended && (
           <Link to={`/session/${session.id}/seating`} className="flex h-9 items-center rounded-lg bg-sunken px-3 text-sm font-medium">
-            Change players
+            {t.session.changePlayers}
           </Link>
         )}
-        {!ended && <ConfirmButton label="End session" onConfirm={end} />}
+        {!ended && <ConfirmButton label={t.session.end} onConfirm={end} />}
         {ended && !otherRunning && (
           <Button size="sm" onClick={reopen}>
-            Reopen session
+            {t.session.reopen}
           </Button>
         )}
-        <ConfirmButton label="Delete session" onConfirm={remove} danger />
+        <ConfirmButton label={t.session.delete} onConfirm={remove} danger />
       </div>
     </section>
   )

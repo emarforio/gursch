@@ -37,7 +37,16 @@ const FUNCTIONS: Record<string, (x: number) => number> = {
 export const FORMULA_VARIABLES = ['max_score', 'min_score', 'total', 'players'] as const
 export const FORMULA_FUNCTIONS = Object.keys(FUNCTIONS)
 
-export class FormulaError extends Error {}
+/** What is wrong with a formula, as a code the UI turns into a sentence. */
+export type FormulaProblem =
+  | { code: 'unexpected' | 'expected' | 'unknownFunction' | 'unknownName'; token: string }
+  | { code: 'endsEarly' | 'empty' | 'notANumber' | 'invalid' }
+
+export class FormulaError extends Error {
+  constructor(readonly problem: FormulaProblem) {
+    super('token' in problem ? `${problem.code}: ${problem.token}` : problem.code)
+  }
+}
 
 type Token = { k: 'num'; v: number } | { k: 'id'; v: string } | { k: 'op'; v: string }
 
@@ -49,7 +58,7 @@ function tokenize(src: string): Token[] {
     if (/^\s*$/.test(src.slice(pos))) break
     re.lastIndex = pos
     const m = re.exec(src)
-    if (!m) throw new FormulaError(`Unexpected "${src.slice(pos).trim()[0]}"`)
+    if (!m) throw new FormulaError({ code: 'unexpected', token: src.slice(pos).trim()[0] ?? '' })
     if (m[1] !== undefined) tokens.push({ k: 'num', v: Number(m[1]) })
     else if (m[2] !== undefined) tokens.push({ k: 'id', v: m[2].toLowerCase() })
     else {
@@ -69,7 +78,7 @@ function parse(src: string): Node {
     return t !== undefined && t.k === 'op' && t.v === v
   }
   const expectOp = (v: string) => {
-    if (!peekOp(v)) throw new FormulaError(`Expected "${v}"`)
+    if (!peekOp(v)) throw new FormulaError({ code: 'expected', token: v })
     i++
   }
 
@@ -110,7 +119,7 @@ function parse(src: string): Node {
   }
   function primary(): Node {
     const tok = tokens[i]
-    if (tok === undefined) throw new FormulaError('The formula ends too early')
+    if (tok === undefined) throw new FormulaError({ code: 'endsEarly' })
     if (tok.k === 'num') {
       i++
       return { t: 'num', v: tok.v }
@@ -119,14 +128,14 @@ function parse(src: string): Node {
       i++
       if (peekOp('(')) {
         const fn = FUNCTIONS[tok.v]
-        if (!fn) throw new FormulaError(`Unknown function "${tok.v}"`)
+        if (!fn) throw new FormulaError({ code: 'unknownFunction', token: tok.v })
         i++
         const a = expr()
         expectOp(')')
         return { t: 'call', fn, a }
       }
       const name = VARIABLES[tok.v]
-      if (!name) throw new FormulaError(`Unknown name "${tok.v}"`)
+      if (!name) throw new FormulaError({ code: 'unknownName', token: tok.v })
       return { t: 'var', name }
     }
     if (tok.v === '(') {
@@ -135,13 +144,13 @@ function parse(src: string): Node {
       expectOp(')')
       return a
     }
-    throw new FormulaError(`Unexpected "${tok.v}"`)
+    throw new FormulaError({ code: 'unexpected', token: tok.v })
   }
 
-  if (tokens.length === 0) throw new FormulaError('The formula is empty')
+  if (tokens.length === 0) throw new FormulaError({ code: 'empty' })
   const root = expr()
   const extra = tokens[i]
-  if (extra !== undefined) throw new FormulaError(`Unexpected "${extra.v}"`)
+  if (extra !== undefined) throw new FormulaError({ code: 'unexpected', token: String(extra.v) })
   return root
 }
 
@@ -174,13 +183,13 @@ function evalNode(n: Node, vars: FormulaVars): number {
   }
 }
 
-/** Returns an error message, or null when the formula is valid. */
-export function validateFormula(src: string): string | null {
+/** Returns what is wrong with the formula, or null when it is valid. */
+export function validateFormula(src: string): FormulaProblem | null {
   try {
     parse(src)
     return null
   } catch (e) {
-    return e instanceof FormulaError ? e.message : 'Invalid formula'
+    return e instanceof FormulaError ? e.problem : { code: 'invalid' }
   }
 }
 
@@ -190,7 +199,7 @@ export function validateFormula(src: string): string | null {
  */
 export function evaluateFormula(src: string, vars: FormulaVars): number {
   const value = evalNode(parse(src), vars)
-  if (!Number.isFinite(value)) throw new FormulaError('The result is not a number')
+  if (!Number.isFinite(value)) throw new FormulaError({ code: 'notANumber' })
   // Remove floating point noise such as 0.1 + 0.2.
   return Math.round(value * 1e6) / 1e6
 }

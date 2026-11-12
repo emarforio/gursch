@@ -2,9 +2,11 @@ import { Link } from 'react-router-dom'
 import { useStore } from '../../data/store'
 import { sessionTotals } from '../../domain/session'
 import type { Player, Session } from '../../domain/types'
+import { useT } from '../../i18n'
 import { fmtSigned, peopleOf } from '../format'
 
 export function SessionList({ sessions, players }: { sessions: Session[]; players: Player[] }) {
+  const t = useT()
   return (
     <ul className="divide-y divide-line rounded-xl bg-surface">
       {sessions.map((s) => {
@@ -18,8 +20,8 @@ export function SessionList({ sessions, players }: { sessions: Session[]; player
               <div className="flex items-baseline justify-between gap-3">
                 <span className="font-semibold">{s.name}</span>
                 <span className="text-sm text-muted">
-                  {rounds} {rounds === 1 ? 'round' : 'rounds'}
-                  {!s.endedAt && ' · in progress'}
+                  {t.common.rounds(rounds)}
+                  {!s.endedAt && ` · ${t.history.inProgress}`}
                 </span>
               </div>
               <div className="mt-0.5 flex items-baseline justify-between gap-3 text-sm text-muted">
@@ -41,12 +43,13 @@ export function SessionList({ sessions, players }: { sessions: Session[]; player
 export function HistoryPage() {
   const sessions = useStore((s) => s.sessions)
   const players = useStore((s) => s.players)
+  const t = useT()
   const sorted = [...sessions].sort((a, b) => b.createdAt - a.createdAt)
   return (
     <section>
-      <h1 className="text-2xl font-bold">History</h1>
+      <h1 className="text-2xl font-bold">{t.history.title}</h1>
       {sorted.length === 0 ? (
-        <p className="mt-2 text-muted">No sessions yet.</p>
+        <p className="mt-2 text-muted">{t.history.none}</p>
       ) : (
         <div className="mt-4">
           <SessionList sessions={sorted} players={players} />

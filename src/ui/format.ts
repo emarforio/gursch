@@ -1,20 +1,46 @@
+import type { FormulaProblem } from '../domain/formula'
 import type { Player, Session, SessionPlayer } from '../domain/types'
+import { locale } from '../i18n'
+import type { Dictionary } from '../i18n'
 
-/** Money without trailing zeros: 12, 0.48, -3.5 */
+// Numbers and dates follow the app's language, not the browser default.
+
+function fmtNumber(n: number, minDigits: number, maxDigits: number): string {
+  const text = new Intl.NumberFormat(locale(), {
+    minimumFractionDigits: minDigits,
+    maximumFractionDigits: maxDigits,
+    useGrouping: false,
+  }).format(n)
+  return text.replace('-', '−')
+}
+
+/** Money without trailing zeros: 12, 0.48, −3.5 */
 export function fmtMoney(n: number): string {
-  return String(Math.round(n * 100) / 100).replace('-', '−')
+  // Adding 0 turns a rounded −0 into 0.
+  return fmtNumber(Math.round(n * 100) / 100 + 0, 0, 2)
 }
 
 export function fmtSigned(n: number): string {
   return (n > 0 ? '+' : '') + fmtMoney(n)
 }
 
-export function fmtDate(ms: number): string {
-  return new Date(ms).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })
+/** A number with exactly one decimal, or a dash when there is none. */
+export function fmtAverage(n: number | null): string {
+  return n === null ? '–' : fmtNumber(n, 1, 1)
 }
 
-export function fmtAverage(n: number | null): string {
-  return n === null ? '–' : n.toFixed(1)
+/** A share as a whole percentage, or a dash when there is nothing to take a share of. */
+export function fmtPercent(part: number, whole: number): string {
+  return whole ? new Intl.NumberFormat(locale(), { style: 'percent', maximumFractionDigits: 0 }).format(part / whole) : '–'
+}
+
+export function fmtDate(ms: number): string {
+  return new Date(ms).toLocaleDateString(locale(), { day: 'numeric', month: 'short', year: 'numeric' })
+}
+
+/** The sentence for a formula problem reported by the domain layer. */
+export function formulaProblem(t: Dictionary, problem: FormulaProblem): string {
+  return 'token' in problem ? t.formula[problem.code](problem.token) : t.formula[problem.code]
 }
 
 /** Looks up a session's players by id, preferring current names and pictures over the snapshot. */

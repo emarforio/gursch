@@ -4,6 +4,7 @@ import { firebaseConfigured } from '../../data/config'
 import { currentDeal } from '../../domain/session'
 import { computeStats } from '../../domain/stats'
 import type { Session } from '../../domain/types'
+import { useT } from '../../i18n'
 import { LineChart, seriesColor } from '../components/Charts'
 import { ScoreTable } from '../components/ScoreTable'
 import { SettleUp } from '../components/SettleUp'
@@ -14,6 +15,7 @@ type State = { status: 'loading' } | { status: 'missing' } | { status: 'error' }
 /** Read-only live view of a shared session, for people following along. No sign-in needed. */
 export function SharedPage() {
   const { id } = useParams()
+  const t = useT()
   const [state, setState] = useState<State>({ status: firebaseConfigured ? 'loading' : 'missing' })
 
   useEffect(() => {
@@ -37,20 +39,20 @@ export function SharedPage() {
     }
   }, [id])
 
-  if (state.status === 'loading') return <p className="text-muted">Loading the session…</p>
+  if (state.status === 'loading') return <p className="text-muted">{t.shared.loading}</p>
   if (state.status === 'error') {
     return (
       <section>
-        <h1 className="text-2xl font-bold">Could not load the session</h1>
-        <p className="mt-2 text-muted">Check your connection and reload the page.</p>
+        <h1 className="text-2xl font-bold">{t.shared.errorTitle}</h1>
+        <p className="mt-2 text-muted">{t.shared.errorNote}</p>
       </section>
     )
   }
   if (state.status === 'missing') {
     return (
       <section>
-        <h1 className="text-2xl font-bold">This session is not shared</h1>
-        <p className="mt-2 text-muted">The link may be wrong, or the owner has stopped sharing it.</p>
+        <h1 className="text-2xl font-bold">{t.shared.missingTitle}</h1>
+        <p className="mt-2 text-muted">{t.shared.missingNote}</p>
       </section>
     )
   }
@@ -67,28 +69,28 @@ export function SharedPage() {
     <section>
       <h1 className="text-2xl font-bold">{session.name}</h1>
       <p className="mt-1 text-muted">
-        {rounds} {rounds === 1 ? 'round' : 'rounds'} played · {ended ? 'Ended' : 'Live, updates automatically'}
+        {t.shared.played(rounds)} · {ended ? t.common.ended : t.shared.live}
       </p>
 
       {!ended && (
         <p className="mt-4 rounded-xl bg-surface px-3 py-2.5">
-          Round {rounds + 1}: <span className="font-semibold">{currentDeal(session)} cards</span> each
+          {t.game.round(rounds + 1)}: <span className="font-semibold">{t.common.cards(currentDeal(session))}</span> {t.shared.each}
         </p>
       )}
       {last && (
         <p className="mt-2 rounded-xl bg-surface px-3 py-2.5">
-          Last round: <span className="font-semibold">{person(last.loserId).name}</span> owes{' '}
+          {t.shared.lastRound} <span className="font-semibold">{person(last.loserId).name}</span> {t.common.owes}{' '}
           <span className="font-semibold">{person(last.winnerId).name}</span>{' '}
           <span className="tabular font-bold">{fmtMoney(last.amount)}</span>
         </p>
       )}
 
-      <h2 className="mt-6 mb-2 font-semibold">Scores</h2>
+      <h2 className="mt-6 mb-2 font-semibold">{t.common.scores}</h2>
       <ScoreTable session={session} person={person} />
 
       {rounds > 0 && (
         <>
-          <h2 className="mt-6 mb-2 font-semibold">Money over time</h2>
+          <h2 className="mt-6 mb-2 font-semibold">{t.common.moneyOverTime}</h2>
           <div className="rounded-xl bg-surface p-3">
             <LineChart
               series={stats.timeline.ids.map((pid) => {
@@ -103,7 +105,7 @@ export function SharedPage() {
             />
           </div>
 
-          <h2 className="mt-6 mb-2 font-semibold">Settle up</h2>
+          <h2 className="mt-6 mb-2 font-semibold">{t.common.settleUp}</h2>
           <SettleUp session={session} person={person} />
         </>
       )}
