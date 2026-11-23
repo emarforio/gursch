@@ -4,6 +4,7 @@
  */
 import { initializeApp } from 'firebase/app'
 import {
+  connectAuthEmulator,
   deleteUser,
   getAuth,
   GoogleAuthProvider,
@@ -15,6 +16,7 @@ import {
 } from 'firebase/auth'
 import {
   collection,
+  connectFirestoreEmulator,
   deleteDoc,
   doc,
   getDocsFromServer,
@@ -38,6 +40,12 @@ export const db = initializeFirestore(app, {
   localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }),
   ignoreUndefinedProperties: true,
 })
+
+// Local development against the Firebase emulators (`npm run emulators`), see .env.emulator.
+if (import.meta.env.VITE_USE_EMULATORS === 'true') {
+  connectAuthEmulator(auth, 'http://127.0.0.1:9099', { disableWarnings: true })
+  connectFirestoreEmulator(db, '127.0.0.1', 8180)
+}
 
 /** `anonymous` is a sign-in made only to play online, without a Google account. */
 export type User = { uid: string; name: string; email: string; photo?: string; anonymous: boolean }

@@ -355,6 +355,15 @@ The live site is https://gursch.marfor.io. GitHub Actions deploys it on every pu
 
 When hosting on a domain other than the Firebase ones, add it under Authentication > Settings > Authorized domains.
 
+### Local development with emulators
+
+The Firebase Emulator Suite runs Auth and Firestore on the device, so signed-in features can be developed without the real project. It needs Java 21 or newer.
+
+1. `npm run emulators` starts Auth (9099), Firestore (8180) and the emulator UI at http://localhost:4000. It uses the project id `demo-gursch`. Ids starting with `demo-` never reach a real project, and no `firebase login` is needed. Data is saved to `.emulator-data/` (gitignored) on exit and loaded on the next start.
+2. `npm run dev:emulator` starts Vite in the `emulator` mode. `.env.emulator` overrides `.env` with the demo project and sets `VITE_USE_EMULATORS=true`, which makes `src/data/firebase.ts` connect to the emulators.
+
+`npm run dev` still uses the real project. The Firestore emulator loads `firestore.rules` and reloads it on save, and the emulator UI's Requests tab shows which rule allowed or denied each request. Google sign-in opens the emulator's fake account picker. Use two browser windows with different accounts to test sharing. Revoking the Google token on account deletion goes to the real Google and fails without harm.
+
 ## Decisions
 
 These are assumptions made while planning. Change the plan and `RULES.md` if any is wrong.
