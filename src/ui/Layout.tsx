@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
+import { firebaseConfigured } from '../data/config'
 import { useStore } from '../data/store'
 import { useT } from '../i18n'
 import { Avatar } from './components/Avatar'
@@ -15,6 +16,7 @@ export function Layout() {
 
   const pages = [
     { to: '/', label: t.nav.game },
+    ...(firebaseConfigured ? [{ to: '/online', label: t.nav.online }] : []),
     { to: '/history', label: t.nav.history },
     { to: '/stats', label: t.nav.stats },
     { to: '/players', label: t.nav.players },
@@ -26,7 +28,7 @@ export function Layout() {
   useEffect(() => setOpen(false), [location])
 
   // Name the page in the tab title, so tabs and screen readers can tell pages apart.
-  const section = [...pages, { to: '/settings', label: t.nav.settings }].find((p) => p.to !== '/' && location.pathname.startsWith(p.to))
+  const section = [...pages, { to: '/settings', label: t.nav.settings }, { to: '/lobby', label: t.nav.online }].find((p) => p.to !== '/' && location.pathname.startsWith(p.to))
   useEffect(() => {
     document.title = section ? `${section.label} · Gursch` : 'Gursch'
   }, [section?.label])

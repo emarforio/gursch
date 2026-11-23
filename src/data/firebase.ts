@@ -9,6 +9,7 @@ import {
   GoogleAuthProvider,
   onAuthStateChanged,
   reauthenticateWithPopup,
+  signInAnonymously,
   signInWithPopup,
   signOut as fbSignOut,
 } from 'firebase/auth'
@@ -31,14 +32,15 @@ import { firebaseOptions } from './config'
 import type { Data, Repository, Settings } from './repository'
 
 const app = initializeApp(firebaseOptions)
-const auth = getAuth(app)
-const db = initializeFirestore(app, {
+export const auth = getAuth(app)
+export const db = initializeFirestore(app, {
   // Keeps a copy on the device so the app works offline and syncs later.
   localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }),
   ignoreUndefinedProperties: true,
 })
 
-export type User = { uid: string; name: string; email: string; photo?: string }
+/** `anonymous` is a sign-in made only to play online, without a Google account. */
+export type User = { uid: string; name: string; email: string; photo?: string; anonymous: boolean }
 
 export function watchUser(cb: (user: User | null) => void): () => void {
   return onAuthStateChanged(auth, (u) =>
@@ -47,6 +49,7 @@ export function watchUser(cb: (user: User | null) => void): () => void {
         uid: u.uid,
         name: u.displayName ?? u.email ?? '',
         email: u.email ?? '',
+        anonymous: u.isAnonymous,
         ...(u.photoURL ? { photo: u.photoURL } : {}),
       },
     ),
@@ -55,6 +58,15 @@ export function watchUser(cb: (user: User | null) => void): () => void {
 
 export async function signIn(): Promise<void> {
   await signInWithPopup(auth, new GoogleAuthProvider())
+}
+
+/**
+ * The current user id, signing in anonymously first when nobody is signed in.
+ * Used to play online; an anonymous sign-in never becomes the app's account.
+ */
+export async function playerUid(): Promise<string> {
+  await auth.authStateReady()
+  return auth.currentUser?.uid ?? (await signInAnonymously(auth)).user.uid
 }
 
 export async function signOut(): Promise<void> {

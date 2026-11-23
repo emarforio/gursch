@@ -9,7 +9,10 @@ import type { Data, Repository } from './repository'
 type Store = Data & {
   /** The active storage: this device when signed out, the account when signed in. */
   repo: Repository
+  /** The Google account, when signed in with one. */
   user: User | null
+  /** The id used to play online: the account's, or an anonymous sign-in's. */
+  playerUid: string | null
   /** True until the active storage has delivered its data. */
   loading: boolean
   /** A message from the sync service, or SYNC_UNREACHABLE. */
@@ -47,6 +50,7 @@ export const useStore = create<Store>(() => ({
   settings: { defaultConfig: DEFAULT_CONFIG },
   repo: localRepo,
   user: null,
+  playerUid: null,
   loading: true,
   syncError: null,
 }))
@@ -71,9 +75,13 @@ const firebase = () => import('./firebase')
 async function startAuth() {
   try {
     const fb = await firebase()
-    fb.watchUser((user) => {
-      useStore.setState({ user, syncError: null })
+    fb.watchUser((signedIn) => {
+      // An anonymous sign-in is only for playing online. The app keeps using this device's data.
+      const user = signedIn && !signedIn.anonymous ? signedIn : null
+      const changed = user?.uid !== useStore.getState().user?.uid
+      useStore.setState({ user, playerUid: signedIn?.uid ?? null, syncError: null })
       setFlag(user !== null)
+      if (!changed && !useStore.getState().loading) return
       if (!user) return useLocal()
       cloud?.close()
       cloud = fb.createFirestoreRepo(user.uid, (message) => useStore.setState({ syncError: message }))

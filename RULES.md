@@ -126,3 +126,16 @@ Each round the loser owes the winner an amount given by a formula over that roun
 ```
 
 where `max_score` is the loser's score and `min_score` is the winner's score. Sometimes we use other formulas, such as `max_score^2` or `(max_score * min_score) / 100`. The formula can change during a session; debts are kept as a running tab and settled at the end.
+
+## Playing online
+
+The app can deal and run the game when everyone plays on their own phone. One player creates a lobby and sends the link; the others open it and join. That player's phone deals the cards, so it has to stay on the game. Scores and money are kept automatically.
+
+Where these rules leave something open, the app plays it like this:
+
+- **Throwing a weak hand** is possible only while the leader is choosing the first trade. So it cannot be done in rounds of one or two cards. The new hand has no face-up card.
+- **Open trades** can be suggested by anyone, one at a time and as often as you like, until everyone has pressed "Ready to play". An open trade can be at most as many cards as you hold.
+- **Cards everyone has seen** stay shown next to the player's name while they are still in the hand: the face-up card of the deal and cards taken in an open trade.
+- **More cards than the trick requires** may only be played as a set that matches or beats the bar.
+- **Different cards that all match or beat the bar**, such as a jack and a queen against two tens, lead the trick but do not raise the bar.
+- **A top-up card** that matches or beats the bar leads the trick, and its value becomes the new bar. A player who is already out of the trick still has to follow the rule but cannot win it.

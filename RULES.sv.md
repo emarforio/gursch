@@ -126,3 +126,16 @@ Varje runda är förloraren skyldig vinnaren ett belopp som ges av en formel öv
 ```
 
 där `max_score` är förlorarens poäng och `min_score` är vinnarens poäng. Ibland använder vi andra formler, som `max_score^2` eller `(max_score * min_score) / 100`. Formeln kan ändras under en session; skulderna förs som en löpande nota och görs upp i slutet.
+
+## Spela online
+
+Appen kan dela ut och sköta spelet när alla spelar på sin egen telefon. En spelare skapar en lobby och skickar länken, och de andra öppnar den och går med. Den spelarens telefon delar ut korten, så den måste ha spelet öppet. Poäng och pengar förs automatiskt.
+
+Där reglerna ovan lämnar något öppet spelar appen så här:
+
+- **Slänga en svag hand** går bara medan ledaren bestämmer det första bytet. Det går alltså inte i rundor med ett eller två kort. Den nya handen har inget uppvänt kort.
+- **Öppna byten** kan föreslås av vem som helst, ett i taget och hur många gånger som helst, tills alla har tryckt på ”Redo att spela”. Ett öppet byte kan vara högst lika många kort som man har på handen.
+- **Kort som alla har sett** visas vid spelarens namn så länge de finns kvar på handen: det uppvända kortet från given och kort som tagits i ett öppet byte.
+- **Fler kort än sticket kräver** får bara spelas som en kombination som är lika med eller slår ribban.
+- **Olika kort som alla är lika med eller slår ribban**, till exempel en knekt och en dam mot två tior, leder sticket men höjer inte ribban.
+- **Ett påfyllnadskort** som är lika med eller slår ribban leder sticket, och dess valör blir den nya ribban. En spelare som redan är ute ur sticket måste ändå följa regeln men kan inte vinna det.

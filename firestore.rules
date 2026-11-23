@@ -28,5 +28,50 @@ service cloud.firestore {
 
       allow delete: if request.auth != null && resource.data.ownerUid == request.auth.uid;
     }
+
+    // Online games. The host's device deals: it alone writes the game, and each
+    // player can read only their own hand. Players sign in anonymously or with Google.
+    function isHost(code) {
+      return request.auth != null
+        && get(/databases/$(database)/documents/lobbies/$(code)).data.hostUid == request.auth.uid;
+    }
+
+    match /lobbies/{code} {
+      // The public table: anyone with the code can watch. Nobody can browse for lobbies.
+      allow get: if true;
+      allow create: if request.auth != null && request.resource.data.hostUid == request.auth.uid;
+      allow update: if request.auth != null
+                    && resource.data.hostUid == request.auth.uid
+                    && request.resource.data.hostUid == request.auth.uid;
+      allow delete: if request.auth != null && resource.data.hostUid == request.auth.uid;
+
+      // Everyone adds themselves; the host can remove anyone.
+      match /members/{uid} {
+        allow read: if true;
+        allow create, update: if request.auth != null && request.auth.uid == uid
+                              && request.resource.data.uid == uid
+                              && request.resource.data.name is string
+                              && request.resource.data.name.size() > 0
+                              && request.resource.data.name.size() <= 12;
+        allow delete: if request.auth != null && (request.auth.uid == uid || isHost(code));
+      }
+
+      // A player's cards, dealt by the host.
+      match /hands/{uid} {
+        allow read: if request.auth != null && (request.auth.uid == uid || isHost(code));
+        allow write: if isHost(code);
+      }
+
+      // A player's latest move, for the host to carry out.
+      match /moves/{uid} {
+        allow read: if request.auth != null && (request.auth.uid == uid || isHost(code));
+        allow write: if request.auth != null && request.auth.uid == uid;
+      }
+
+      // The deck and everyone's cards.
+      match /secret/{doc} {
+        allow read, write: if isHost(code);
+      }
+    }
   }
 }
