@@ -9,7 +9,8 @@ import { Button } from '../components/Button'
 import { MAX_NAME } from '../components/SeatingEditor'
 import { saveName, savedName } from '../online/useLobby'
 
-const field = 'h-11 min-w-0 flex-1 rounded-lg bg-surface px-3 outline-none ring-1 ring-line focus:ring-2 focus:ring-accent'
+/** A one-line text field. In a row it shares the width; alone it is as wide as a short name needs. */
+const field = 'h-11 min-w-0 rounded-lg bg-surface px-3 outline-none ring-1 ring-line focus:ring-2 focus:ring-accent'
 
 /** Start a lobby for an online game, or join one with a code. */
 export function OnlinePage() {
@@ -67,7 +68,7 @@ export function OnlinePage() {
         onChange={(e) => setName(e.target.value)}
         maxLength={MAX_NAME}
         autoComplete="nickname"
-        className={`${field} mt-2 w-full`}
+        className={`${field} mt-2 block w-full max-w-xs`}
       />
 
       <form onSubmit={join} className="mt-8">
@@ -83,7 +84,7 @@ export function OnlinePage() {
             autoCapitalize="none"
             autoComplete="off"
             spellCheck={false}
-            className={field}
+            className={`${field} flex-1`}
           />
           <Button type="submit" disabled={!code.trim()}>
             {t.online.join}

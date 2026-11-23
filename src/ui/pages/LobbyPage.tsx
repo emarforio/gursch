@@ -108,7 +108,8 @@ function LobbyView({ code }: { code: string }) {
   )
 }
 
-const field = 'h-11 min-w-0 flex-1 rounded-lg bg-surface px-3 outline-none ring-1 ring-line focus:ring-2 focus:ring-accent'
+/** A one-line text field. In a row it shares the width; alone it is as wide as a short name needs. */
+const field = 'h-11 min-w-0 rounded-lg bg-surface px-3 outline-none ring-1 ring-line focus:ring-2 focus:ring-accent'
 
 function JoinForm({ lobby, code }: { lobby: Lobby; code: string }) {
   const t = useT()
@@ -145,7 +146,7 @@ function JoinForm({ lobby, code }: { lobby: Lobby; code: string }) {
         onChange={(e) => setName(e.target.value)}
         maxLength={MAX_NAME}
         autoComplete="nickname"
-        className={`${field} mt-2 w-full`}
+        className={`${field} mt-2 block w-full max-w-xs`}
       />
       {full && <p className="mt-4 text-muted">{t.lobby.full(MAX_ONLINE)}</p>}
       {failed && (
