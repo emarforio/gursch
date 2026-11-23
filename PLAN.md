@@ -1,6 +1,6 @@
 # Gursch scorekeeper — project plan
 
-A small web app for keeping score in the card game Gursch. The app does **not** simulate the game. It records the result of each round, works out winner, loser, money and the next deal size, and shows stats.
+A small web app for the card game Gursch. At a real table it keeps score: it records the result of each round, works out winner, loser, money and the next deal size, and shows stats. It can also run the game itself online, with each player on their own phone (see "Online play"), and then keeps the score the same way.
 
 Read `RULES.md` before working on anything. It is the source of truth for game rules, and the app's rules page renders it.
 
@@ -8,7 +8,7 @@ Read `RULES.md` before working on anything. It is the source of truth for game r
 
 - Works well on mobile first, and on desktop.
 - Fully usable without logging in. Data is kept in `localStorage`.
-- Logging in only adds sync across devices and live session sharing.
+- Logging in only adds sync across devices and live session sharing. Playing online needs a connection but no Google account: players are signed in anonymously.
 - No backend server of our own. Firebase provides auth, database and static hosting.
 - Score entry uses on-screen buttons only. The keyboard must never open during a round.
 - Score entry takes as few taps as possible: one tap per player plus one to save.
@@ -42,12 +42,15 @@ src/
     formula.ts     parser and evaluator for money formulas
     ledger.ts      per-round debts, balances, settle-up
     stats.ts       session and player statistics
+    game/          the online game: cards.ts, trick.ts (trick rules), engine.ts (one round as a state machine)
   data/
     repository.ts  interface: players, sessions, settings; subscribe + write
     localRepo.ts   localStorage implementation
     firestoreRepo.ts
     migrate.ts     copy local data into the account on first login
     backup.ts      export to and import from a JSON file
+    online.ts      lobbies in Firestore: create, join, watch, send moves
+    host.ts        the dealer that runs on the host's device
   i18n/          en.ts and sv.ts dictionaries, language choice, useT()
   ui/            pages and components
 ```
@@ -128,6 +131,11 @@ Rounds are embedded in the session document. A round is a few hundred bytes, so 
 users/{uid}                    settings: default SessionConfig
 users/{uid}/players/{playerId}
 sessions/{sessionId}
+lobbies/{code}                 online game: public table, see "Online play"
+lobbies/{code}/members/{uid}
+lobbies/{code}/hands/{uid}
+lobbies/{code}/moves/{uid}
+lobbies/{code}/secret/game
 ```
 
 Security rules:
@@ -183,6 +191,8 @@ One versioned key per collection: `gursch.v1.players`, `gursch.v1.sessions`, `gu
 7. **Players** — add, rename, set picture. Removing a player who has played turns them into a guest; one who never played is deleted. Guests can be added on the fly when starting a session and promoted to regular players later.
 8. **Rules** — renders `RULES.md`.
 9. **Shared view** — `/s/{sessionId}`, read-only live view, no login needed.
+11. **Online** (`/online`) — enter a name, create a lobby or join one with a code.
+12. **Lobby** (`/lobby/{code}`) — before the game: invite link, seating that the host can reorder, the host's deal and money settings, start. During the game: the table. Afterwards: final scores.
 10. **Settings** (`/settings`) — sign in or out, language, light or dark appearance, keep the screen on, export and import data as JSON, delete the account or the data on the device. Called Settings rather than Account because most of it applies without an account. The default config is not edited here: a new session starts from the settings of the last one.
 
 ### Round entry
@@ -272,12 +282,69 @@ Requested by Erik on 2026-11-11: some people will prefer Swedish over English on
 - **Document:** set `<html lang>` to the active language. The web app manifest stays in English.
 - **Testing:** a unit test that both dictionaries have the same keys, and a browser walkthrough of the main flow in Swedish at phone width to catch labels that no longer fit, especially the score entry screen and the stats tiles.
 
+## Online play
+
+Requested on 2026-11-23: play the game itself together, each on their own phone, in lobbies that are shared with a link the way a session is shared.
+
+### Who deals
+
+There is no server of our own and no Cloud Functions (they need the paid plan), so **the host's device is the dealer**. While the lobby page is open on it, `src/data/host.ts` holds the whole game, applies every move through the engine and writes the result. Each player can read only their own hand. Known limits, accepted when this was chosen:
+
+- The host's device knows every card. A host who opens the developer tools could look.
+- If the host closes the page the game pauses. It resumes where it was when the host opens the lobby again, because the full game is saved after every move.
+
+### Firestore
+
+| Document | Holds | Read | Write |
+|---|---|---|---|
+| `lobbies/{code}` | status, host, seating, config, the session with the scores, the public game | anyone with the code | host |
+| `lobbies/{code}/members/{uid}` | name and join time | anyone with the code | that player; the host may remove |
+| `lobbies/{code}/hands/{uid}` | the player's cards, and the id and outcome of their last move | that player and the host | host |
+| `lobbies/{code}/moves/{uid}` | the player's latest move | that player and the host | that player |
+| `lobbies/{code}/secret/game` | the full game state, including the deck | host | host |
+
+- The code is six letters and digits that cannot be confused (no `i l o 0 1`). The link is `/lobby/{code}`.
+- A player sends a move by overwriting their move document with a new id, and waits until the host writes that id back as `ack` in their hand document, with a `problem` code if the rules did not allow it. The UI checks moves with the same domain functions first, so refusals are rare.
+- The host writes the lobby, the changed hands and the secret in one batch. It keeps its own copy of the lobby and never reads it back, so a late snapshot cannot undo a newer change.
+- When a round ends the host adds it to the session as a normal `Round` (finish, scores, tie-break leader, winner, loser, amount from the formula), both in the lobby and in the host's own history through the repository: the account when signed in, the device otherwise. Players' ids in that session are their Firebase uids.
+
+### Sign-in
+
+Players without a Google account are signed in anonymously when they create or join a lobby (`playerUid()` in `firebase.ts`). An anonymous sign-in never becomes the app's account: the store keeps `user` null and stays on the device's data, and keeps the uid separately as `playerUid`. Anyone can host, signed in or not.
+
+### The engine
+
+`src/domain/game/` is pure and fully tested, including a test that plays several hundred random rounds and checks that no card is lost or duplicated and nobody is ever stuck.
+
+- A card is a number 0–51; only its value counts. Suits are shown so cards look like cards.
+- `engine.ts` is one round as a state machine with the phases `firstTrade`, `firstDiscard`, `openTrade`, `openVote`, `openTake`, `play`, `over`. `apply(state, player, action, random)` returns the next state or throws a `GameError` with a problem code. `publicView` strips the hands, the deck and the secret choices.
+- `trick.ts` holds the trick rules: `checkPlay` and `applyPlay`.
+- The next deal and the money use the same domain code as the scorekeeper (`currentDeal`, `resolveRound`, `roundAmount`).
+
+### How the app reads the rules
+
+Where `RULES.md` leaves something open, the app does the following. These are listed for players in the "Playing online" section of `RULES.md`.
+
+- A weak hand can be thrown only while the leader is choosing the first trade, so not in rounds of one or two cards. The new hand has no face-up card.
+- The open trade phase lasts until everyone has pressed "Ready to play". Anyone can suggest open trades, one at a time, as often as they like. A suggested trade can be at most the cards in a hand, and no more than the deck can give everyone.
+- When the face-up card of the deal, or a card taken in an open trade, is still in a player's hand, everyone sees it next to their name.
+- Playing more cards than the trick requires is only allowed as a set that matches or beats the bar.
+- Mixed cards that all match or beat the bar take the lead of the trick without raising the bar.
+- A top-up that matches or beats the bar takes the lead and its value becomes the bar. A player who is out still follows the rule when topping up but cannot take the lead.
+- If the deck and discard pile run out while tied players draw for the leader, the first of them in seat order leads.
+
+### Not built yet
+
+- Changing the seating or the deal between rounds, and players joining or leaving once the game has started. The host can end the game and start a new lobby.
+- Telling the other players when the host's device has gone away.
+- Removing old lobbies. They hold names and scores only.
+
 ## Firebase setup
 
 The app is local-only until a Firebase project is configured. All SDK code is in `src/data/firebase.ts`, loaded with a dynamic import.
 
 1. Create a Firebase project and add a web app.
-2. Authentication: enable the Google provider.
+2. Authentication: enable the Google provider, and the Anonymous provider for online play.
 3. Firestore: create the database in production mode.
 4. Copy `.env.example` to `.env` and fill in the web app's `firebaseConfig` values. Restart the dev server.
 5. Install the CLI (`npm i -g firebase-tools`), run `firebase login` and `firebase use --add`.
@@ -301,3 +368,4 @@ All of these are confirmed by Erik. Do not reopen them without asking.
 5. Dofflar, trofflar and fofflar played during a round are not recorded, only the kind of finish.
 6. Sessions have no score target and end manually.
 7. The app is offered in English and Swedish, defaulting to the device language and changeable by the user. This replaces the earlier English-only decision.
+8. Online play (2026-11-23): the host's device deals, players without an account sign in anonymously, and all the rules are played. See "Online play".

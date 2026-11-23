@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { firebaseConfigured } from '../../data/config'
 import { useStore } from '../../data/store'
 import { useT } from '../../i18n'
 import { BottomBar } from '../components/BottomBar'
@@ -26,6 +27,11 @@ export function HomePage() {
         </>
       )}
       <BottomBar>
+        {firebaseConfigured && (
+          <Link to="/online" className="mb-2 flex h-13 items-center justify-center rounded-lg bg-sunken text-lg font-medium">
+            {t.home.playOnline}
+          </Link>
+        )}
         <Link to="/new" className="flex h-13 items-center justify-center rounded-lg bg-accent text-lg font-medium text-accent-text">
           {t.home.newSession}
         </Link>

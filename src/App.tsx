@@ -3,7 +3,9 @@ import { useT } from './i18n'
 import { Layout } from './ui/Layout'
 import { HistoryPage } from './ui/pages/HistoryPage'
 import { HomePage } from './ui/pages/HomePage'
+import { LobbyPage } from './ui/pages/LobbyPage'
 import { NewSessionPage } from './ui/pages/NewSessionPage'
+import { OnlinePage } from './ui/pages/OnlinePage'
 import { Placeholder } from './ui/pages/Placeholder'
 import { PlayersPage } from './ui/pages/PlayersPage'
 import { RoundEditPage } from './ui/pages/RoundEditPage'
@@ -25,6 +27,8 @@ export function App() {
         <Route path="session/:id/seating" element={<SeatingPage />} />
         <Route path="session/:id/round/:roundId" element={<RoundEditPage />} />
         <Route path="s/:id" element={<SharedPage />} />
+        <Route path="online" element={<OnlinePage />} />
+        <Route path="lobby/:id" element={<LobbyPage />} />
         <Route path="history" element={<HistoryPage />} />
         <Route path="stats" element={<StatsPage />} />
         <Route path="players" element={<PlayersPage />} />
