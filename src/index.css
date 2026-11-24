@@ -19,6 +19,12 @@
   --series-6: #008300;
   --series-7: #6250d6;
   --series-8: #e34948;
+  --felt: #1d6b48;
+  --felt-edge: #6e4b2f;
+  --felt-text: #f2f5ef;
+  --card: #ffffff;
+  --card-text: #1d1e20;
+  --card-red: #c0362c;
   color-scheme: light;
 }
 
@@ -44,6 +50,12 @@
     --series-6: #008300;
     --series-7: #9085e9;
     --series-8: #e66767;
+    --felt: #16543a;
+    --felt-edge: #4a3220;
+    --felt-text: #e7eee6;
+    --card: #f4f2ec;
+    --card-text: #1d1e20;
+    --card-red: #b5322a;
     color-scheme: dark;
   }
 }
@@ -67,6 +79,12 @@
   --series-6: #008300;
   --series-7: #9085e9;
   --series-8: #e66767;
+  --felt: #16543a;
+  --felt-edge: #4a3220;
+  --felt-text: #e7eee6;
+  --card: #f4f2ec;
+  --card-text: #1d1e20;
+  --card-red: #b5322a;
   color-scheme: dark;
 }
 
@@ -81,6 +99,12 @@
   --color-accent-text: var(--accent-text);
   --color-good: var(--good);
   --color-bad: var(--bad);
+  --color-felt: var(--felt);
+  --color-felt-edge: var(--felt-edge);
+  --color-felt-text: var(--felt-text);
+  --color-card: var(--card);
+  --color-card-text: var(--card-text);
+  --color-card-red: var(--card-red);
   --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-mono: var(--font-sans);
 }

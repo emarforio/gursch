@@ -8,7 +8,7 @@ Read `RULES.md` before working on anything. It is the source of truth for game r
 
 - Works well on mobile first, and on desktop.
 - Fully usable without logging in. Data is kept in `localStorage`.
-- Logging in only adds sync across devices and live session sharing. Playing online needs a connection but no Google account: players are signed in anonymously.
+- Logging in only adds sync across devices and live session sharing. Playing online needs a connection. Hosting a game needs a Google account; joining one does not, as players are signed in anonymously.
 - No backend server of our own. Firebase provides auth, database and static hosting.
 - Score entry uses on-screen buttons only. The keyboard must never open during a round.
 - Score entry takes as few taps as possible: one tap per player plus one to save.
@@ -191,8 +191,8 @@ One versioned key per collection: `gursch.v1.players`, `gursch.v1.sessions`, `gu
 7. **Players** — add, rename, set picture. Removing a player who has played turns them into a guest; one who never played is deleted. Guests can be added on the fly when starting a session and promoted to regular players later.
 8. **Rules** — renders `RULES.md`.
 9. **Shared view** — `/s/{sessionId}`, read-only live view, no login needed.
-11. **Online** (`/online`) — enter a name, create a lobby or join one with a code.
-12. **Lobby** (`/lobby/{code}`) — before the game: invite link, seating that the host can reorder, the host's deal and money settings, start. During the game: the table. Afterwards: final scores.
+11. **Online** (`/online`) — enter a name, create a lobby or join one with a code. Creating needs a Google sign-in; signed out, the page offers to sign in instead, and joining still works.
+12. **Lobby** (`/lobby/{code}`) — before the game: invite link, seating that the host can reorder, the host's deal and money settings, start. During the game: the table (see "The table" under "Online play"). Afterwards: final scores.
 10. **Settings** (`/settings`) — sign in or out, language, light or dark appearance, keep the screen on, export and import data as JSON, delete the account or the data on the device. Called Settings rather than Account because most of it applies without an account. The default config is not edited here: a new session starts from the settings of the last one.
 
 ### Round entry
@@ -310,16 +310,27 @@ There is no server of our own and no Cloud Functions (they need the paid plan), 
 
 ### Sign-in
 
-Players without a Google account are signed in anonymously when they create or join a lobby (`playerUid()` in `firebase.ts`). An anonymous sign-in never becomes the app's account: the store keeps `user` null and stays on the device's data, and keeps the uid separately as `playerUid`. Anyone can host, signed in or not.
+Only players signed in with Google can create a lobby, so the host's game is kept in their account. `firestore.rules` enforces it: a lobby cannot be created with an anonymous sign-in. Players without a Google account are signed in anonymously when they join a lobby (`playerUid()` in `firebase.ts`). An anonymous sign-in never becomes the app's account: the store keeps `user` null and stays on the device's data, and keeps the uid separately as `playerUid`.
 
 ### The engine
 
 `src/domain/game/` is pure and fully tested, including a test that plays several hundred random rounds and checks that no card is lost or duplicated and nobody is ever stuck.
 
 - A card is a number 0–51; only its value counts. Suits are shown so cards look like cards.
-- `engine.ts` is one round as a state machine with the phases `firstTrade`, `firstDiscard`, `openTrade`, `openVote`, `openTake`, `play`, `over`. `apply(state, player, action, random)` returns the next state or throws a `GameError` with a problem code. `publicView` strips the hands, the deck and the secret choices.
+- `engine.ts` is one round as a state machine with the phases `firstTrade`, `firstDiscard`, `openTrade`, `openVote`, `openTake`, `play`, `over`. `apply(state, player, action, random)` returns the next state or throws a `GameError` with a problem code. `publicView` strips the hands, the deck and the secret choices. `tricks` keeps every finished trick of the round, so players can look back at what was played.
 - `trick.ts` holds the trick rules: `checkPlay` and `applyPlay`.
 - The next deal and the money use the same domain code as the scorekeeper (`currentDeal`, `resolveRound`, `roundAmount`).
+
+### The table
+
+`src/ui/online/PokerTable.tsx` draws the players round an oval card table, clockwise, with this player at the bottom (or the first seat for someone watching). Cards are white like real cards in both themes, with the value in the corner so they stay readable when they overlap.
+
+- Each seat shows the name, cards in hand (the score once the round is over), face-up cards and a "leader" tag. Whoever's turn it is is highlighted.
+- The cards a player puts into a trick lie on the felt in front of them. Cards of players who are out are faded, and the cards leading the trick are outlined. The outline is the only sign of who leads the trick; screen readers get it as text.
+- Between tricks the finished trick stays on the table, faded except for the cards that took it, until the next card is played.
+- Tapping a seat or its cards opens a dialog with everything that player has played this round, trick by trick, and which tricks they took.
+- With more than six players the cards on the table are smaller. The hand is a row that overlaps when it does not fit.
+- The layout does not jump while playing. The bottom bar keeps fixed room for the prompt, the hand and an error line, and within a phase its buttons stay in place and are disabled when there is nothing to do, instead of appearing and disappearing. Notices sit below the table so they never push it down.
 
 ### How the app reads the rules
 
@@ -332,6 +343,8 @@ Where `RULES.md` leaves something open, the app does the following. These are li
 - Mixed cards that all match or beat the bar take the lead of the trick without raising the bar.
 - A top-up that matches or beats the bar takes the lead and its value becomes the bar. A player who is out still follows the rule when topping up but cannot take the lead.
 - If the deck and discard pile run out while tied players draw for the leader, the first of them in seat order leads.
+- With one card each there is no trade, but everyone looks at their card and presses "Ready to play". Then all the cards are played and shown at once.
+- When the cards a player must play are their whole hand, such as their last card, the app plays them without asking (`playForced` in `engine.ts`).
 
 ### Not built yet
 

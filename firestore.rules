@@ -39,7 +39,10 @@ service cloud.firestore {
     match /lobbies/{code} {
       // The public table: anyone with the code can watch. Nobody can browse for lobbies.
       allow get: if true;
-      allow create: if request.auth != null && request.resource.data.hostUid == request.auth.uid;
+      // Only players signed in with an account can host. Guests join anonymously.
+      allow create: if request.auth != null
+                    && request.auth.token.firebase.sign_in_provider != 'anonymous'
+                    && request.resource.data.hostUid == request.auth.uid;
       allow update: if request.auth != null
                     && resource.data.hostUid == request.auth.uid
                     && request.resource.data.hostUid == request.auth.uid;

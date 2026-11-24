@@ -201,8 +201,39 @@ describe('a round', () => {
     const s = newRound(seats, 1, seeded(3))
     expect(s.leaderDraws.length).toBeGreaterThan(0)
     expect(s.known).toEqual({ A: [], B: [], C: [] })
+    expect(s.phase).toBe('openTrade')
+  })
+
+  it('shows all the cards of a one card round once everyone is ready', () => {
+    let s = newRound(seats, 1, seeded(3))
+    const r = seeded(9)
+    const dealt = Object.fromEntries(seats.map((id) => [id, s.hands[id]!]))
+    expect(maxOpenTrade({ ...s, cardsLeft: s.deck.length + s.discard.length })).toBe(0)
+    expect(() => apply(s, 'A', { type: 'propose', count: 1 }, r)).toThrow(GameError)
+    s = apply(s, 'A', { type: 'ready' }, r)
+    s = apply(s, 'B', { type: 'ready' }, r)
+    expect(s.phase).toBe('openTrade')
+    s = apply(s, 'C', { type: 'ready' }, r)
+    expect(s.phase).toBe('over')
+    expect(s.tricks).toHaveLength(1)
+    expect(s.tricks[0]!.plays).toEqual(dealt)
+    expect(s.tricks[0]!.starterId).toBe(s.leaderId)
+  })
+
+  it('plays the last card of each hand by itself', () => {
+    // After the first trick everyone has one card left and nobody has a choice.
+    let s = rigged({ A: [c(5), c(9)], B: [c(6), c(10)], C: [c(7), c(11)] })
+    s = run(s, [
+      ['A', { type: 'play', cards: [c(5)] }],
+      ['B', { type: 'play', cards: [c(6)] }],
+    ])
     expect(s.phase).toBe('play')
-    expect(s.trick?.starterId).toBe(s.leaderId)
+    s = run(s, [['C', { type: 'play', cards: [c(7)] }]])
+    expect(s.phase).toBe('over')
+    expect(s.tricks.map((t) => t.plays)).toEqual([
+      { A: [c(5)], B: [c(6)], C: [c(7)] },
+      { A: [c(9)], B: [c(10)], C: [c(11)] },
+    ])
   })
 
   it('skips the first trade with two cards each', () => {
@@ -285,14 +316,11 @@ describe('a round', () => {
       ['B', { type: 'play', cards: [c(3)] }],
       ['C', { type: 'play', cards: [c(7)] }],
     ])
-    expect(s.lastTrick!.holderId).toBe('A')
-    expect(s.trick!.starterId).toBe('A')
-    s = run(s, [
-      ['A', { type: 'play', cards: [c(4)] }],
-      ['B', { type: 'play', cards: [c(9)] }],
-      ['C', { type: 'play', cards: [c(12)] }],
-    ])
+    // Everyone has one card left, so the last trick plays by itself.
     expect(s.phase).toBe('over')
+    expect(s.tricks[0]!.holderId).toBe('A')
+    expect(s.tricks[1]!.starterId).toBe('A')
+    expect(s.tricks[1]!.plays).toEqual({ A: [c(4)], B: [c(9)], C: [c(12)] })
     expect(s.result).toEqual({ scores: { A: 4, B: 9, C: 12 }, finish: 1, lastTrickLeaderId: 'A' })
   })
 
@@ -301,10 +329,10 @@ describe('a round', () => {
     s = run(s, [
       ['A', { type: 'play', cards: [c(5)] }],
       ['B', { type: 'play', cards: [c(6), c(6, 1)] }],
-      ['C', { type: 'play', cards: [c(2), c(14)] }],
-      ['A', { type: 'play', cards: [c(8)] }],
     ])
+    // C must play both cards and A their last one, so the engine plays them.
     expect(s.phase).toBe('over')
+    expect(s.tricks[0]!.plays).toEqual({ A: [c(5), c(8)], B: [c(6), c(6, 1)], C: [c(2), c(14)] })
     expect(s.result).toEqual({ scores: { A: 13, B: 12, C: 16 }, finish: 2, lastTrickLeaderId: 'A' })
     expect(s.tricksWon.A).toBe(1)
   })

@@ -129,7 +129,9 @@ where `max_score` is the loser's score and `min_score` is the winner's score. So
 
 ## Playing online
 
-The app can deal and run the game when everyone plays on their own phone. One player creates a lobby and sends the link; the others open it and join. That player's phone deals the cards, so it has to stay on the game. Scores and money are kept automatically.
+The app can deal and run the game when everyone plays on their own phone. One player creates a lobby and sends the link; the others open it and join. Creating a lobby needs a Google sign-in, but anyone can join without an account. The creator's phone deals the cards, so it has to stay on the game. Scores and money are kept automatically.
+
+The cards everyone plays stay on the table in front of them. Tap a player to see everything they have played this round.
 
 Where these rules leave something open, the app plays it like this:
 
@@ -139,3 +141,5 @@ Where these rules leave something open, the app plays it like this:
 - **More cards than the trick requires** may only be played as a set that matches or beats the bar.
 - **Different cards that all match or beat the bar**, such as a jack and a queen against two tens, lead the trick but do not raise the bar.
 - **A top-up card** that matches or beats the bar leads the trick, and its value becomes the new bar. A player who is already out of the trick still has to follow the rule but cannot win it.
+- **With one card each**, everyone looks at their card and presses "Ready to play". Then all the cards are shown at once.
+- **When you have no choice**, for example with your last card, the app plays your cards for you.

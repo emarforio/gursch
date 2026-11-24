@@ -1,7 +1,7 @@
 import type { Finish, Scores } from '../types'
 import { allInHand, DECK, isWeakHand, shuffle, valueOf, without } from './cards'
 import type { Card } from './cards'
-import { applyPlay, checkPlay, startTrick } from './trick'
+import { applyPlay, cardsToPlay, checkPlay, startTrick } from './trick'
 import type { PlayProblem, Trick } from './trick'
 
 /**
@@ -64,6 +64,8 @@ export type GameState = {
   refusedBy: string | null
   trick: Trick | null
   lastTrick: Trick | null
+  /** Every finished trick of this round, oldest first. */
+  tricks: Trick[]
   tricksWon: Record<string, number>
   result: RoundResult | null
 }
@@ -156,6 +158,7 @@ export function newRound(seats: string[], cardsDealt: number, random: Random): G
     refusedBy: null,
     trick: null,
     lastTrick: null,
+    tricks: [],
     tricksWon: Object.fromEntries(seats.map((id) => [id, 0])),
     result: null,
   }
@@ -185,8 +188,9 @@ export function newRound(seats: string[], cardsDealt: number, random: Random): G
   // Only if the deck ran dry: the first of the tied players in seat order leads.
   s.leaderId = contenders[0]!
 
-  if (cardsDealt === 1) startPlay(s)
-  else if (cardsDealt === 2) toOpenTrade(s)
+  // With one or two cards there is no first trade. With one card there is no open trade either,
+  // but everyone looks at their card and says they are ready before the cards are shown.
+  if (cardsDealt <= 2) toOpenTrade(s)
   return s
 }
 
@@ -202,10 +206,33 @@ function startPlay(s: GameState) {
   s.phase = 'play'
   s.ready = []
   s.trick = startTrick(s.seats, s.leaderId)
+  playForced(s)
+}
+
+function play(s: GameState, playerId: string, cards: Card[]) {
+  s.trick = applyPlay(s.trick!, s.seats, playerId, cards)
+  s.hands[playerId] = without(s.hands[playerId]!, cards)
+  forget(s, playerId, cards)
+  if (s.trick.turnId === null) finishTrick(s)
+}
+
+/**
+ * Plays for each player in turn who has no choice: the cards they must play
+ * are their whole hand, such as their last card. That play is always allowed.
+ */
+function playForced(s: GameState) {
+  while (s.phase === 'play' && s.trick?.turnId) {
+    const id = s.trick.turnId
+    const hand = s.hands[id]!
+    if (hand.length !== cardsToPlay(s.trick, id)) return
+    play(s, id, [...hand])
+  }
 }
 
 /** The largest open trade the cards allow: no more than the hand, and enough cards for everyone. */
 export function maxOpenTrade(s: Pick<GameState, 'seats' | 'cardsDealt'> & { cardsLeft: number }): number {
+  // A single card is dealt face down and cannot be traded.
+  if (s.cardsDealt === 1) return 0
   return Math.min(s.cardsDealt, Math.floor(s.cardsLeft / s.seats.length))
 }
 
@@ -243,6 +270,8 @@ function finishTrick(s: GameState) {
   const trick = s.trick!
   s.tricksWon[trick.holderId]! += 1
   s.lastTrick = trick
+  // Games saved before the history was kept have no list yet.
+  s.tricks = [...(s.tricks ?? []), trick]
   s.trick = null
   if (s.hands[s.seats[0]!]!.length > 0) {
     s.trick = startTrick(s.seats, trick.holderId)
@@ -358,10 +387,8 @@ export function apply(state: GameState, playerId: string, action: Action, random
       const trick = s.trick!
       const problem = checkPlay(trick, playerId, hand, action.cards)
       if (problem) throw new GameError(problem)
-      s.trick = applyPlay(trick, s.seats, playerId, action.cards)
-      s.hands[playerId] = without(hand, action.cards)
-      forget(s, playerId, action.cards)
-      if (s.trick.turnId === null) finishTrick(s)
+      play(s, playerId, action.cards)
+      playForced(s)
       return s
     }
   }

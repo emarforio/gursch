@@ -3,7 +3,7 @@ import type { ReactNode } from 'react'
 import type { Lobby } from '../../data/online'
 import { isWeakHand, sortCards, valueOf } from '../../domain/game/cards'
 import type { Card } from '../../domain/game/cards'
-import { fromSeat, maxOpenTrade } from '../../domain/game/engine'
+import { maxOpenTrade } from '../../domain/game/engine'
 import type { Action, GameProblem, PublicGame } from '../../domain/game/engine'
 import { cardsToPlay, checkPlay } from '../../domain/game/trick'
 import type { Dictionary } from '../../i18n'
@@ -15,7 +15,8 @@ import { ScoreTable } from '../components/ScoreTable'
 import { SettleUp } from '../components/SettleUp'
 import { fmtMoney } from '../format'
 import { useWakeLock } from '../wakeLock'
-import { CardFace, cardList } from './CardFace'
+import { CardFace, cardList, Fan } from './CardFace'
+import { PokerTable } from './PokerTable'
 
 type Props = {
   lobby: Lobby
@@ -56,17 +57,20 @@ export function Table(props: Props) {
     setSuggesting(false)
   }, [step])
 
-  const order = me ? fromSeat(game.seats, me) : game.seats
   const names = (ids: string[]) => ids.map((id) => (id === me ? t.play.you : nameOf(id))).join(', ')
   const waitingFor = (done: string[]) => t.play.waitingFor(names(game.seats.filter((id) => !done.includes(id))))
   const card = (c: Card) => t.common.card(valueOf(c))
   const recorded = session && session.rounds.length >= lobby.round ? session.rounds[lobby.round - 1] : undefined
 
-  // What the player is asked to do, and which cards they can pick.
+  // What the player is asked to do, which cards they can pick, and what went wrong.
+  // Within a phase the same controls stay on screen and are disabled when there is nothing to do,
+  // so the layout does not jump while waiting for the others.
   let prompt = ''
   let pickHand = false
   let actions: ReactNode = null
+  let problem: string | null = props.failed ? t.online.failed : props.problem ? t.play.problems[props.problem] : null
   const chosen = me !== null && game.chosen.includes(me)
+  const big = 'h-13 w-full text-lg'
 
   switch (game.phase) {
     case 'firstTrade': {
@@ -98,23 +102,22 @@ export function Table(props: Props) {
 
     case 'firstDiscard': {
       const n = game.tradeCount ?? 0
-      if (me && !chosen) {
-        prompt = t.play.pickDiscard(n)
-        pickHand = true
+      prompt = me && !chosen ? t.play.pickDiscard(n) : waitingFor(game.chosen)
+      if (me) {
+        pickHand = !chosen
         actions = (
-          <Button variant="primary" className="h-13 w-full text-lg" disabled={busy || selected.length !== n} onClick={() => submit({ type: 'discard', cards: selected })}>
+          <Button variant="primary" className={big} disabled={busy || chosen || selected.length !== n} onClick={() => submit({ type: 'discard', cards: selected })}>
             {t.play.trade(n)}
           </Button>
         )
-      } else {
-        prompt = waitingFor(game.chosen)
       }
       break
     }
 
     case 'openTrade': {
       const ready = me !== null && game.ready.includes(me)
-      prompt = ready ? waitingFor(game.ready) : t.play.openPrompt
+      const single = game.cardsDealt === 1
+      prompt = ready ? waitingFor(game.ready) : single ? t.play.oneCardPrompt : t.play.openPrompt
       const max = maxOpenTrade(game)
       if (me) {
         actions = suggesting ? (
@@ -133,13 +136,12 @@ export function Table(props: Props) {
           </div>
         ) : (
           <div className="flex flex-col gap-2">
-            {!ready && (
-              <Button variant="primary" className="h-13 w-full text-lg" disabled={busy} onClick={() => submit({ type: 'ready' })}>
-                {t.play.ready}
-              </Button>
-            )}
-            {max > 0 && (
-              <Button className="w-full" disabled={busy} onClick={() => setSuggesting(true)}>
+            <Button variant="primary" className={big} disabled={busy || ready} onClick={() => submit({ type: 'ready' })}>
+              {t.play.ready}
+            </Button>
+            {/* A single card cannot be traded, so that round has no open trade at all. */}
+            {!single && (
+              <Button className="w-full" disabled={busy || max === 0} onClick={() => setSuggesting(true)}>
                 {t.play.suggestOpen}
               </Button>
             )}
@@ -154,14 +156,14 @@ export function Table(props: Props) {
       const agreed = me !== null && open.accepted.includes(me)
       if (open.proposerId === me) prompt = `${t.play.youProposed(open.count)} ${waitingFor(open.accepted)}`
       else if (agreed || !me) prompt = `${t.play.proposed(nameOf(open.proposerId), open.count)} ${waitingFor(open.accepted)}`
-      else {
-        prompt = t.play.proposed(nameOf(open.proposerId), open.count)
+      else prompt = t.play.proposed(nameOf(open.proposerId), open.count)
+      if (me) {
         actions = (
           <div className="grid grid-cols-2 gap-2">
-            <Button disabled={busy} onClick={() => submit({ type: 'vote', accept: false })}>
+            <Button disabled={busy || agreed} onClick={() => submit({ type: 'vote', accept: false })}>
               {t.play.refuse}
             </Button>
-            <Button variant="primary" disabled={busy} onClick={() => submit({ type: 'vote', accept: true })}>
+            <Button variant="primary" disabled={busy || agreed} onClick={() => submit({ type: 'vote', accept: true })}>
               {t.play.agree}
             </Button>
           </div>
@@ -171,86 +173,66 @@ export function Table(props: Props) {
     }
 
     case 'openTake': {
-      if (me && !chosen) {
-        prompt = t.play.pickTake
-        pickHand = true
+      prompt = me && !chosen ? t.play.pickTake : waitingFor(game.chosen)
+      if (me) {
+        pickHand = !chosen
         const same = taking.length === selected.length
+        if (!chosen && !same) problem ??= t.play.pickSame
         actions = (
-          <>
-            {!same && <p className="mb-2 text-sm text-muted">{t.play.pickSame}</p>}
-            <Button
-              variant="primary"
-              className="h-13 w-full text-lg"
-              disabled={busy || !same}
-              onClick={() => submit({ type: 'take', take: taking, discard: selected })}
-            >
-              {taking.length === 0 ? t.play.takeNone : t.play.takeAndDiscard(taking.length)}
-            </Button>
-          </>
+          <Button variant="primary" className={big} disabled={busy || chosen || !same} onClick={() => submit({ type: 'take', take: taking, discard: selected })}>
+            {taking.length === 0 ? t.play.takeNone : t.play.takeAndDiscard(taking.length)}
+          </Button>
         )
-      } else {
-        prompt = waitingFor(game.chosen)
       }
       break
     }
 
     case 'play': {
       if (!trick) break
-      if (!me || trick.turnId !== me || !hand) {
+      const mine = me !== null && trick.turnId === me && hand !== null
+      if (mine) {
+        const rule = trick.required === 0 ? t.play.startTrick : t.play.follow(cardsToPlay(trick, me), t.common.card(trick.bar))
+        prompt = `${t.play.yourTurn} ${rule}`
+        pickHand = true
+        const wrong = selected.length > 0 ? checkPlay(trick, me, hand, selected) : null
+        if (wrong) problem ??= t.play.problems[wrong]
+      } else {
         prompt = trick.turnId ? t.play.turnOf(nameOf(trick.turnId)) : ''
-        break
       }
-      const rule = trick.required === 0 ? t.play.startTrick : t.play.follow(cardsToPlay(trick, me), t.common.card(trick.bar))
-      prompt = `${t.play.yourTurn} ${rule}`
-      pickHand = true
-      const problem = selected.length > 0 ? checkPlay(trick, me, hand, selected) : null
-      actions = (
-        <>
-          {problem && (
-            <p className="mb-2 text-sm text-bad" role="alert">
-              {t.play.problems[problem]}
-            </p>
-          )}
-          <Button
-            variant="primary"
-            className="h-13 w-full text-lg"
-            disabled={busy || selected.length === 0 || problem !== null}
-            onClick={() => submit({ type: 'play', cards: selected })}
-          >
-            {t.play.playCards(selected.length)}
+      if (me) {
+        const allowed = mine && selected.length > 0 && checkPlay(trick, me, hand, selected) === null
+        actions = (
+          <Button variant="primary" className={big} disabled={busy || !allowed} onClick={() => submit({ type: 'play', cards: selected })}>
+            {t.play.playCards(mine ? selected.length : 0)}
           </Button>
-        </>
-      )
+        )
+      }
       break
     }
 
     case 'over': {
       prompt = t.play.roundOver
       actions = isHost ? (
-        <Button variant="primary" className="h-13 w-full text-lg" disabled={!recorded} onClick={props.nextRound}>
+        <Button variant="primary" className={big} disabled={!recorded} onClick={props.nextRound}>
           {t.play.nextRound}
         </Button>
       ) : (
-        <p className="text-muted">{t.play.waitingNext(nameOf(lobby.hostUid))}</p>
+        <p className="flex h-13 items-center text-muted">{t.play.waitingNext(nameOf(lobby.hostUid))}</p>
       )
       break
     }
   }
 
-  const offered = game.phase === 'openTake' && me && !chosen ? (game.open?.offered[me] ?? []) : []
+  const offered = game.phase === 'openTake' && me ? (game.open?.offered[me] ?? []) : []
 
   return (
     <section className="flex flex-1 flex-col">
       <h1 className="text-xl font-bold">{t.play.heading(lobby.round, game.cardsDealt)}</h1>
       <p className="mt-1 text-sm text-muted">{t.play.cardsLeft(game.cardsLeft)}</p>
 
-      <Notices game={game} t={t} nameOf={nameOf} card={card} />
+      <PokerTable game={game} me={me} nameOf={nameOf} />
 
-      <ol className="mt-4 divide-y divide-line rounded-xl bg-surface">
-        {order.map((id) => (
-          <SeatRow key={id} id={id} me={me} game={game} t={t} nameOf={nameOf} />
-        ))}
-      </ol>
+      <Notices game={game} t={t} nameOf={nameOf} card={card} />
 
       {recorded && game.phase === 'over' && (
         <p className="mt-3 rounded-xl bg-surface px-3 py-2.5" role="status">
@@ -275,90 +257,46 @@ export function Table(props: Props) {
       )}
 
       <BottomBar>
-        {prompt && (
-          <p className="mb-3 font-medium" role="status">
-            {busy ? t.play.sending : prompt}
-          </p>
-        )}
+        <p className="mb-1 min-h-12 font-medium" role="status">
+          {busy ? t.play.sending : prompt}
+        </p>
         {offered.length > 0 && (
           <div className="mb-3">
             <h2 className="mb-1.5 text-sm text-muted">{t.play.onOffer}</h2>
-            <div className="flex flex-wrap gap-1.5 pt-2">
-              {offered.map((c) => (
-                <CardFace key={c} card={c} selected={taking.includes(c)} disabled={busy} onClick={() => setTaking(toggle(taking, c))} />
-              ))}
+            <div className="pt-3">
+              <Fan width="3.5rem">
+                {offered.map((c) => (
+                  <CardFace key={c} card={c} selected={taking.includes(c)} disabled={busy || chosen} onClick={() => setTaking(toggle(taking, c))} />
+                ))}
+              </Fan>
             </div>
           </div>
         )}
         {hand && (
-          <div className="mb-3">
+          <div className="mb-1">
             <h2 className="sr-only">{t.play.yourHand}</h2>
-            <div className="flex flex-wrap gap-1.5 pt-2">
-              {hand.map((c) => (
-                <CardFace
-                  key={c}
-                  card={c}
-                  selected={selected.includes(c)}
-                  disabled={busy}
-                  onClick={pickHand ? () => setSelected(toggle(selected, c)) : undefined}
-                />
-              ))}
+            {/* Keeps the height of a card when the hand is empty at the end of the round. */}
+            <div className="min-h-24 pt-3">
+              <Fan width="3.5rem">
+                {hand.map((c) => (
+                  <CardFace
+                    key={c}
+                    card={c}
+                    selected={selected.includes(c)}
+                    disabled={busy}
+                    onClick={pickHand ? () => setSelected(toggle(selected, c)) : undefined}
+                  />
+                ))}
+              </Fan>
             </div>
           </div>
         )}
-        {(props.problem || props.failed) && (
-          <p className="mb-2 text-sm text-bad" role="alert">
-            {props.failed ? t.online.failed : t.play.problems[props.problem!]}
-          </p>
-        )}
+        <p className="mb-2 min-h-5 text-sm text-bad" role="alert">
+          {problem}
+        </p>
         {actions}
       </BottomBar>
     </section>
-  )
-}
-
-type RowProps = { id: string; me: string | null; game: PublicGame; t: Dictionary; nameOf: (uid: string) => string }
-
-/** One player at the table: their public cards and where they stand in the trick. */
-function SeatRow({ id, me, game, t, nameOf }: RowProps) {
-  const trick = game.phase === 'over' ? game.lastTrick : game.trick
-  const inTrick = trick?.plays[id] ?? []
-  const turn = game.phase === 'play' && trick?.turnId === id
-  const offered = game.phase === 'openTake' ? (game.open?.offered[id] ?? []) : []
-  const known = game.phase === 'over' ? [] : (game.known[id] ?? [])
-  const score = game.phase === 'over' ? game.result?.scores[id] : undefined
-  const started = trick && trick.required > 0
-
-  return (
-    <li className={`px-3 py-2.5 ${turn ? 'border-l-4 border-accent bg-sunken' : ''}`} aria-current={turn ? 'step' : undefined}>
-      <div className="flex items-baseline gap-2">
-        <span className="min-w-0 truncate font-medium">{id === me ? t.play.you : nameOf(id)}</span>
-        {game.leaderId === id && <span className="text-sm text-muted">{t.play.leader}</span>}
-        {started && trick.out.includes(id) && <span className="text-sm text-muted">{t.play.out}</span>}
-        {started && trick.holderId === id && game.phase === 'play' && <span className="text-sm font-medium text-accent">{t.play.holds}</span>}
-        <span className="tabular ml-auto shrink-0 text-sm text-muted">
-          {score !== undefined ? score : t.play.cardCount(game.handSizes[id] ?? 0)}
-        </span>
-      </div>
-      {(inTrick.length > 0 || known.length > 0 || offered.length > 0) && (
-        <div className="mt-1.5 flex flex-wrap items-center gap-1">
-          {inTrick.map((c) => (
-            <CardFace key={c} card={c} size="sm" />
-          ))}
-          {offered.map((c) => (
-            <CardFace key={c} card={c} size="sm" />
-          ))}
-          {known.length > 0 && (
-            <span className={`flex items-center gap-1 ${inTrick.length + offered.length > 0 ? 'ml-2' : ''}`}>
-              <span className="text-xs text-muted">{t.play.faceUp}</span>
-              {known.map((c) => (
-                <CardFace key={c} card={c} size="sm" />
-              ))}
-            </span>
-          )}
-        </div>
-      )}
-    </li>
   )
 }
 
@@ -368,14 +306,12 @@ type NoticeProps = { game: PublicGame; t: Dictionary; nameOf: (uid: string) => s
 function Notices({ game, t, nameOf, card }: NoticeProps) {
   const lines: string[] = []
   const beforePlay = game.phase !== 'play' && game.phase !== 'over'
-  const firstTrick = game.phase === 'play' && !game.lastTrick && game.trick?.required === 0
-  if ((beforePlay || firstTrick) && game.leaderDraws.length > 0) {
+  if (beforePlay && game.leaderDraws.length > 0) {
     const draws = game.leaderDraws.map((d) => Object.entries(d).map(([id, c]) => `${nameOf(id)} ${card(c)}`).join(', '))
     lines.push(t.play.leaderDraws(draws.join('; ')))
   }
   if (beforePlay) for (const x of game.thrown) lines.push(t.play.threw(nameOf(x.playerId), cardList(x.cards, t.common.card)))
   if (game.phase === 'openTrade' && game.refusedBy) lines.push(t.play.refused(nameOf(game.refusedBy)))
-  if (game.phase === 'play' && game.lastTrick && game.trick?.required === 0) lines.push(t.play.lastTrick(nameOf(game.lastTrick.holderId)))
   if (lines.length === 0) return null
   return (
     <div className="mt-3 space-y-1.5">

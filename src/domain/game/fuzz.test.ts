@@ -71,17 +71,24 @@ function playRound(players: number, cards: number, seed: number): GameState {
     const [id, action] = pick(moves, random)
     s = apply(s, id, action!, random)
 
-    // Every card is somewhere exactly once, and everyone holds the same number of cards between tricks.
+    // Every card of the deck is somewhere exactly once, and everyone holds the same number of cards between tricks.
     const inTrick = s.trick ? Object.values(s.trick.plays).flat() : []
-    const played = s.phase === 'over' ? [] : inTrick
+    const played = s.tricks.flatMap((t) => Object.values(t.plays).flat())
     const held = Object.values(s.hands).flat()
     const offered = s.phase === 'openTake' ? Object.values(s.open!.offered).flat() : []
-    const all = [...held, ...s.deck, ...s.discard, ...played, ...offered]
-    expect(new Set(all).size).toBe(all.length)
+    const all = [...held, ...s.deck, ...s.discard, ...played, ...inTrick, ...offered]
+    expect(new Set(all).size).toBe(52)
+    expect(all).toHaveLength(52)
+    expect(s.tricks.at(-1) ?? null).toEqual(s.lastTrick)
     if (s.phase !== 'play' || s.trick?.required === 0) {
       expect(new Set(seats.map((p) => s.hands[p]!.length)).size).toBe(1)
     }
     for (const p of seats) for (const c of s.known[p]!) expect(s.hands[p]).toContain(c)
+    // A player is only asked to play when they have a choice; forced plays are made by the engine.
+    if (s.phase === 'play') {
+      const turn = s.trick!.turnId!
+      expect(s.hands[turn]!.length).toBeGreaterThan(cardsToPlay(s.trick!, turn))
+    }
     publicView(s)
   }
   return s
@@ -95,6 +102,9 @@ describe('random rounds', () => {
         for (let seed = 1; seed <= 12; seed++) {
           const s = playRound(players, cards, seed * 97 + players)
           const { scores, finish } = s.result!
+          // Each finished trick was won by someone, and the last one sets the finish.
+          expect(s.tricks).toHaveLength(Object.values(s.tricksWon).reduce((a, b) => a + b, 0))
+          expect(s.tricks.at(-1)!.required).toBe(finish)
           expect(Object.keys(scores)).toHaveLength(players)
           for (const v of Object.values(scores)) {
             expect(v).toBeGreaterThanOrEqual(2 * finish)
