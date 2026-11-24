@@ -129,7 +129,9 @@ där `max_score` är förlorarens poäng och `min_score` är vinnarens poäng. I
 
 ## Spela online
 
-Appen kan dela ut och sköta spelet när alla spelar på sin egen telefon. En spelare skapar en lobby och skickar länken, och de andra öppnar den och går med. Den spelarens telefon delar ut korten, så den måste ha spelet öppet. Poäng och pengar förs automatiskt.
+Appen kan dela ut och sköta spelet när alla spelar på sin egen telefon. En spelare skapar en lobby och skickar länken, och de andra öppnar den och går med. För att skapa en lobby måste man logga in med Google, men alla kan gå med utan konto. Den spelarens telefon delar ut korten, så den måste ha spelet öppet. Poäng och pengar förs automatiskt.
+
+Korten som alla spelar ligger kvar på bordet framför dem. Tryck på en spelare för att se allt den har spelat i rundan.
 
 Där reglerna ovan lämnar något öppet spelar appen så här:
 
@@ -139,3 +141,5 @@ Där reglerna ovan lämnar något öppet spelar appen så här:
 - **Fler kort än sticket kräver** får bara spelas som en kombination som är lika med eller slår ribban.
 - **Olika kort som alla är lika med eller slår ribban**, till exempel en knekt och en dam mot två tior, leder sticket men höjer inte ribban.
 - **Ett påfyllnadskort** som är lika med eller slår ribban leder sticket, och dess valör blir den nya ribban. En spelare som redan är ute ur sticket måste ändå följa regeln men kan inte vinna det.
+- **Med ett kort var** tittar alla på sitt kort och trycker på ”Redo att spela”. Sedan visas alla kort på en gång.
+- **När du inte har något val**, till exempel med ditt sista kort, spelar appen dina kort åt dig.

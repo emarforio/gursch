@@ -262,6 +262,7 @@ export const en = {
     working: 'Connecting…',
     haveCode: 'Got a code?',
     code: 'Lobby code',
+    signInToCreate: 'Sign in with Google to create a lobby. You can join a lobby without an account.',
     join: 'Join',
     failed: 'Could not connect. Check your connection and try again.',
   },
@@ -316,6 +317,7 @@ export const en = {
     waitingFor: (names: string) => `Waiting for ${names}.`,
     // Open trade
     openPrompt: 'Anyone can suggest an open trade. Play starts when everyone is ready.',
+    oneCardPrompt: 'Look at your card. Everyone\'s card is shown when all are ready.',
     ready: 'Ready to play',
     suggestOpen: 'Suggest an open trade',
     openHowMany: 'Open trade of how many cards?',
@@ -337,7 +339,15 @@ export const en = {
     playCards: (n: number) => (n === 0 ? 'Play' : `Play ${cards(n)}`),
     out: 'out',
     holds: 'leads the trick',
-    lastTrick: (name: string) => `${name} took the last trick.`,
+    // The table
+    seatPlays: (name: string) => `See what ${name} has played`,
+    historyTitle: (name: string) => `What ${name} has played`,
+    historyYou: 'What you have played',
+    trickNumber: (n: number) => `Trick ${n}`,
+    thisTrick: 'This trick',
+    tookIt: 'took it',
+    nothingPlayed: 'Nothing played yet this round.',
+    close: 'Close',
     // End of the round
     roundOver: 'Round over',
     nextRound: 'Deal the next round',

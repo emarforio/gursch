@@ -2,7 +2,7 @@ import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { firebaseConfigured } from '../../data/config'
-import { useStore } from '../../data/store'
+import { signIn, useStore } from '../../data/store'
 import { useT } from '../../i18n'
 import { BottomBar } from '../components/BottomBar'
 import { Button } from '../components/Button'
@@ -17,6 +17,9 @@ export function OnlinePage() {
   const t = useT()
   const navigate = useNavigate()
   const user = useStore((s) => s.user)
+  // Until sign-in has settled, the create button waits instead of asking a signed-in player to sign in.
+  const loading = useStore((s) => s.loading)
+  const guest = !loading && !user
   const settings = useStore((s) => s.settings)
   const [name, setName] = useState(() => savedName() || (user?.name.split(' ')[0] ?? '').slice(0, MAX_NAME))
   const [code, setCode] = useState('')
@@ -46,6 +49,16 @@ export function OnlinePage() {
       setFailed(true)
       setWorking(false)
     }
+  }
+
+  async function signInToCreate() {
+    setWorking(true)
+    try {
+      await signIn()
+    } catch {
+      // The sign-in popup was closed.
+    }
+    setWorking(false)
   }
 
   function join(e: FormEvent) {
@@ -99,9 +112,18 @@ export function OnlinePage() {
       )}
 
       <BottomBar>
-        <Button variant="primary" className="h-13 w-full text-lg" disabled={!trimmed || working} onClick={create}>
-          {working ? t.online.working : t.online.create}
-        </Button>
+        {guest ? (
+          <>
+            <p className="mb-2 text-sm text-muted">{t.online.signInToCreate}</p>
+            <Button variant="primary" className="h-13 w-full text-lg" disabled={working} onClick={signInToCreate}>
+              {t.account.signInGoogle}
+            </Button>
+          </>
+        ) : (
+          <Button variant="primary" className="h-13 w-full text-lg" disabled={!trimmed || working || loading} onClick={create}>
+            {working ? t.online.working : t.online.create}
+          </Button>
+        )}
       </BottomBar>
     </section>
   )
